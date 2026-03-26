@@ -1,0 +1,277 @@
+# 📁 **Mini Reddit - Supabase Blueprint (النسخة النهائية مع الإشعارات)**
+
+---
+
+## **1. الجداول (Tables)**
+
+### 👤 **profiles**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY (REFERENCES auth.users) |
+| username | text | UNIQUE, NOT NULL |
+| full_name | text | |
+| bio | text | |
+| avatar_url | text | |
+| banner_url | text | |
+| karma | integer | DEFAULT 0 |
+| created_at | timestamptz | DEFAULT now() |
+| updated_at | timestamptz | |
+
+---
+
+### 🏘️ **communities**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| name | text | UNIQUE, NOT NULL |
+| description | text | |
+| image_url | text | |
+| banner_url | text | |
+| created_by | uuid | REFERENCES profiles(id) |
+| created_at | timestamptz | DEFAULT now() |
+| updated_at | timestamptz | |
+
+---
+
+### 🏷️ **flairs**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| community_id | uuid | REFERENCES communities(id) ON DELETE CASCADE |
+| name | text | NOT NULL |
+| color | text | DEFAULT '#808080' |
+| created_at | timestamptz | DEFAULT now() |
+
+---
+
+### 📝 **posts**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| user_id | uuid | REFERENCES profiles(id) |
+| community_id | uuid | REFERENCES communities(id) |
+| flair_id | uuid | REFERENCES flairs(id) |
+| title | text | NOT NULL |
+| content | text | |
+| post_type | text | CHECK (type IN ('text','link','image')) |
+| link_url | text | |
+| score | integer | DEFAULT 0 |
+| comments_count | integer | DEFAULT 0 |
+| is_deleted | boolean | DEFAULT false |
+| created_at | timestamptz | DEFAULT now() |
+| updated_at | timestamptz | |
+
+---
+
+### 🖼️ **post_images**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| post_id | uuid | REFERENCES posts(id) ON DELETE CASCADE |
+| image_url | text | NOT NULL |
+| position | integer | DEFAULT 0 |
+| created_at | timestamptz | DEFAULT now() |
+
+---
+
+### 👍 **post_votes**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| post_id | uuid | REFERENCES posts(id) ON DELETE CASCADE |
+| user_id | uuid | REFERENCES profiles(id) ON DELETE CASCADE |
+| value | smallint | CHECK (value IN (1, -1)) |
+| created_at | timestamptz | DEFAULT now() |
+| updated_at | timestamptz | |
+
+**UNIQUE** (post_id, user_id)
+
+---
+
+### 💬 **comments**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| post_id | uuid | REFERENCES posts(id) ON DELETE CASCADE |
+| user_id | uuid | REFERENCES profiles(id) |
+| content | text | NOT NULL |
+| parent_id | uuid | REFERENCES comments(id) ON DELETE CASCADE |
+| score | integer | DEFAULT 0 |
+| is_deleted | boolean | DEFAULT false |
+| created_at | timestamptz | DEFAULT now() |
+| updated_at | timestamptz | |
+
+---
+
+### 👍 **comment_votes**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| comment_id | uuid | REFERENCES comments(id) ON DELETE CASCADE |
+| user_id | uuid | REFERENCES profiles(id) |
+| value | smallint | CHECK (value IN (1, -1)) |
+| created_at | timestamptz | DEFAULT now() |
+| updated_at | timestamptz | |
+
+**UNIQUE** (comment_id, user_id)
+
+---
+
+### 💾 **saved_posts**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| user_id | uuid | REFERENCES profiles(id) ON DELETE CASCADE |
+| post_id | uuid | REFERENCES posts(id) ON DELETE CASCADE |
+| created_at | timestamptz | DEFAULT now() |
+
+**UNIQUE** (user_id, post_id)
+
+---
+
+### 👥 **followers**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| follower_id | uuid | REFERENCES profiles(id) ON DELETE CASCADE |
+| following_id | uuid | REFERENCES profiles(id) ON DELETE CASCADE |
+| created_at | timestamptz | DEFAULT now() |
+
+**UNIQUE** (follower_id, following_id)
+
+---
+
+### 👥 **community_members**
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| community_id | uuid | REFERENCES communities(id) ON DELETE CASCADE |
+| user_id | uuid | REFERENCES profiles(id) ON DELETE CASCADE |
+| role | text | DEFAULT 'member', CHECK (role IN ('member', 'admin')) |
+| joined_at | timestamptz | DEFAULT now() |
+
+**UNIQUE** (community_id, user_id)
+
+---
+
+### 🔔 **notifications** ✅ جديد
+| العمود | النوع | القيد |
+|--------|------|-------|
+| id | uuid | PRIMARY KEY |
+| user_id | uuid | REFERENCES profiles(id) ON DELETE CASCADE |
+| actor_id | uuid | REFERENCES profiles(id) |
+| type | text | CHECK (type IN ('upvote', 'downvote', 'comment', 'reply', 'follow')) |
+| post_id | uuid | REFERENCES posts(id) ON DELETE CASCADE |
+| comment_id | uuid | REFERENCES comments(id) ON DELETE CASCADE |
+| is_read | boolean | DEFAULT false |
+| created_at | timestamptz | DEFAULT now() |
+
+---
+
+## **2. الـ Triggers**
+
+| اسم الـ Trigger | الجدول | الحدث | الوظيفة |
+|-----------------|--------|-------|---------|
+| `trigger_posts_update_score` | post_votes | INSERT/UPDATE/DELETE | تحديث posts.score |
+| `trigger_posts_update_comments_count` | comments | INSERT/DELETE/UPDATE | تحديث posts.comments_count |
+| `trigger_comments_update_score` | comment_votes | INSERT/UPDATE/DELETE | تحديث comments.score |
+| `trigger_profile_update_karma` | post_votes, comment_votes | INSERT/UPDATE/DELETE | تحديث profiles.karma |
+
+---
+
+## **3. الـ Functions مع الإشعارات**
+
+### 📝 **post_functions**
+
+| الـ Function | المدخلات | الوظيفة | إشعار؟ |
+|--------------|----------|---------|--------|
+| `create_post()` | p_user_id, p_community_id, p_title, p_content, p_type, p_link_url, p_flair_id, p_image_urls[] | إنشاء منشور | ❌ لا |
+| `vote_post()` | p_post_id, p_value, p_user_id | التصويت على منشور | ✅ نعم (upvote/downvote) |
+| `vote_comment()` | p_comment_id, p_value, p_user_id | التصويت على تعليق | ✅ نعم (upvote/downvote) |
+| `add_comment()` | p_post_id, p_content, p_user_id, p_parent_id | إضافة تعليق/رد | ✅ نعم (comment/reply) |
+| `delete_comment()` | p_comment_id, p_user_id | حذف تعليق | ❌ لا |
+| `save_post()` | p_post_id, p_user_id | حفظ منشور | ❌ لا |
+| `unsave_post()` | p_post_id, p_user_id | إزالة حفظ | ❌ لا |
+| `get_saved_posts()` | p_user_id, p_limit, p_offset | جلب المحفوظات | ❌ لا |
+
+---
+
+### 📊 **feed_functions**
+
+| الـ Function | المدخلات | الوظيفة |
+|--------------|----------|---------|
+| `get_hot_feed()` | p_limit, p_offset, p_user_id, p_community_names[] | المنشورات الأكثر سخونة |
+| `get_new_feed()` | p_limit, p_offset, p_user_id, p_community_names[] | أحدث المنشورات |
+| `get_top_feed()` | p_timeframe, p_limit, p_offset, p_user_id, p_community_names[] | الأعلى تصويتاً |
+| `get_best_feed()` | p_user_id, p_limit, p_offset | من مجتمعات المستخدم |
+| `search_posts()` | p_query, p_limit, p_offset, p_user_id, p_community_names[] | البحث |
+| `get_post_details()` | p_post_id, p_current_user_id | تفاصيل المنشور مع التعليقات |
+
+---
+
+### 🏘️ **community_functions**
+
+| الـ Function | المدخلات | الوظيفة | إشعار؟ |
+|--------------|----------|---------|--------|
+| `create_community()` | p_name, p_description, p_image_url, p_banner_url, p_user_id | إنشاء مجتمع | ❌ لا |
+| `join_community()` | p_community_id, p_user_id | الانضمام لمجتمع | ❌ لا |
+| `leave_community()` | p_community_id, p_user_id | مغادرة المجتمع | ❌ لا |
+| `get_communities()` | p_limit, p_offset, p_search | جلب المجتمعات | ❌ لا |
+| `get_user_communities()` | p_user_id, p_limit, p_offset | جلب مجتمعات المستخدم | ❌ لا |
+| `create_flair()` | p_community_id, p_name, p_color | إنشاء تاج | ❌ لا |
+| `get_community_flairs()` | p_community_id | جلب تاجات المجتمع | ❌ لا |
+
+---
+
+### 👤 **profile_functions**
+
+| الـ Function | المدخلات | الوظيفة | إشعار؟ |
+|--------------|----------|---------|--------|
+| `follow_user()` | p_follower_id, p_following_id | متابعة مستخدم | ✅ نعم (follow) |
+| `unfollow_user()` | p_follower_id, p_following_id | إلغاء المتابعة | ❌ لا |
+| `search_users()` | p_query, p_limit, p_offset | البحث عن مستخدمين | ❌ لا |
+| `get_user_profile()` | p_user_id, p_current_user_id | جلب بروفايل | ❌ لا |
+| `get_user_posts()` | p_target_user_id, p_limit, p_offset, p_current_user_id | منشورات المستخدم | ❌ لا |
+| `get_notifications()` | p_user_id, p_limit, p_offset | جلب الإشعارات | ❌ لا |
+| `mark_notification_read()` | p_notification_id, p_user_id | تعليم كمقروء | ❌ لا |
+
+---
+
+## **4. الـ Storage Buckets**
+
+| اسم الـ Bucket | الاستخدام | عام؟ |
+|----------------|-----------|------|
+| `avatars` | صور البروفايل | ✅ نعم |
+| `banners` | غلاف البروفايل والمجتمعات | ✅ نعم |
+| `post_images` | صور المنشورات | ✅ نعم |
+| `community_images` | صور المجتمعات | ✅ نعم |
+
+---
+
+## **5. ملخص الإشعارات في الـ Functions**
+
+| الحدث | الـ Function | نوع الإشعار | المستلم |
+|-------|--------------|-------------|---------|
+| upvote على منشور | `vote_post()` | `upvote` | صاحب المنشور |
+| downvote على منشور | `vote_post()` | `downvote` | صاحب المنشور |
+| upvote على تعليق | `vote_comment()` | `upvote` | صاحب التعليق |
+| downvote على تعليق | `vote_comment()` | `downvote` | صاحب التعليق |
+| تعليق جديد | `add_comment()` | `comment` | صاحب المنشور |
+| رد على تعليق | `add_comment()` | `reply` | صاحب التعليق الأصلي |
+| متابعة مستخدم | `follow_user()` | `follow` | المُتْبَع |
+
+---
+
+## **الملف النهائي هيكون:**
+
+1. **CREATE TABLES** (17 جدول بالترتيب)
+2. **ENABLE RLS** (تفعيل لكل جدول)
+3. **CREATE POLICIES** (سياسات لكل جدول)
+4. **CREATE TRIGGERS** (4 triggers)
+5. **CREATE FUNCTIONS** (جميع الـ 20+ function)
+6. **CREATE STORAGE BUCKETS** (4 buckets)
+7. **CREATE STORAGE POLICIES** (سياسات الرفع والقراءة)
+
+---
+
+**جاهز أبدأ في كتابة الـ SQL الكامل؟** 🚀
