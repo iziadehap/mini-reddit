@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/post/data/post_data_source.dart';
 import 'package:mini_reddit_v2/features/post/domain/post_repo.dart';
@@ -11,6 +10,28 @@ class PostRepoImpl implements PostRepo {
   final PostDataSource _dataSource;
 
   PostRepoImpl(this._dataSource);
+
+  @override
+  Future<Either<Failure, SuccessModel>> savePost(String postId) async {
+    try {
+      final res = await _dataSource.savePost(postId);
+      return Right(res);
+    } catch (e) {
+      debugPrint('error in save post: $e');
+      return Left(Failure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SuccessModel>> unsavePost(String postId) async {
+    try {
+      final res = await _dataSource.unsavePost(postId);
+      return Right(res);
+    } catch (e) {
+      debugPrint('error in unsave post: $e');
+      return Left(Failure(e.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, FeedPostModel>> createPost({

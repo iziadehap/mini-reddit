@@ -1,5 +1,6 @@
 // lib/features/feed/presentation/widgets/post_card.dart
 import 'package:flutter/material.dart';
+import 'package:like_button/like_button.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
@@ -13,7 +14,7 @@ class FeedPostCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
-  final VoidCallback? onSave;
+  final Future<bool> Function()? onSave;
 
   const FeedPostCard({
     super.key,
@@ -26,6 +27,17 @@ class FeedPostCard extends StatelessWidget {
     this.onShare,
     this.onSave,
   });
+
+  Future<bool> onSaveButtonTapped(bool isLiked) async {
+    onSave?.call();
+
+    // final bool success= await sendRequest();
+
+    /// if failed, you can do nothing
+    // return success? !isLiked:isLiked;
+
+    return !isLiked;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -332,9 +344,44 @@ class FeedPostCard extends StatelessWidget {
           _buildVoteButtons(context),
           const SizedBox(width: 12),
           _buildCommentButton(context),
+          const SizedBox(width: 12),
+          _buildSaveButton(context),
           const Spacer(),
           _buildShareButton(context),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSaveButton(BuildContext context) {
+    final tokens = context.tokens;
+    final typo = context.rTypo;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      height: 34,
+      decoration: BoxDecoration(
+        color: tokens.cardVoteBar,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: LikeButton(
+        isLiked: post.isSaved,
+        onTap: onSaveButtonTapped,
+        size: 18,
+        likeBuilder: (bool isLiked) {
+          return Icon(
+            Icons.bookmark,
+            color: isLiked ? tokens.brandOrange : Colors.grey,
+            size: 18,
+          );
+        },
+        circleColor: CircleColor(
+          start: tokens.brandOrange,
+          end: tokens.brandOrange,
+        ),
+        bubblesColor: BubblesColor(
+          dotPrimaryColor: tokens.brandOrange,
+          dotSecondaryColor: tokens.brandOrange,
+        ),
       ),
     );
   }
@@ -622,5 +669,6 @@ class FeedPostCard extends StatelessWidget {
       ),
     );
   }
+
   void _goToProfile(BuildContext context) {}
 }

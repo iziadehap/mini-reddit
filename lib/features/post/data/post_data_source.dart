@@ -6,9 +6,41 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class PostDataSource {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // إنشاء منشور جديد في مجتمع
-
   // todo : handel this , this can better than this (create_post)
+
+  Future<SuccessModel> savePost(String postId) async {
+    final currentUserId = _supabase.auth.currentUser?.id;
+
+    if (currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final response = await _supabase.rpc(
+      'save_post',
+      params: {'p_post_id': postId, 'p_user_id': currentUserId},
+    );
+
+    return SuccessModel.fromJson(response);
+  }
+
+  // ============================================
+  // UNSAVE POST
+  // ============================================
+
+  Future<SuccessModel> unsavePost(String postId) async {
+    final currentUserId = _supabase.auth.currentUser?.id;
+
+    if (currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final response = await _supabase.rpc(
+      'unsave_post',
+      params: {'p_post_id': postId, 'p_user_id': currentUserId},
+    );
+
+    return SuccessModel.fromJson(response);
+  }
 
   Future<FeedPostModel> createPost({
     required String communityId,

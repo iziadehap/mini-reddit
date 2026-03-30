@@ -3,11 +3,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mini_reddit_v2/core/theme/app_theme.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
+import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
+import 'package:mini_reddit_v2/core/widgets/skeleton_loader.dart';
+import 'package:mini_reddit_v2/features/feed/presentation/widgets/post_card.dart';
+import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/providers/user_comments_provider.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/providers/user_posts_provider.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/widgets/profile_comment_tile.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/pages/edit_profile_screen.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/pages/setting_screen.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/pages/save_post_screen.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/widgets/profile_widget_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -47,14 +56,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     super.dispose();
   }
 
+  void openSavePostScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SavePostScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(myProfileProvider);
 
     return Scaffold(
       body: profileState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        loading: () => const ProfileShimmer(),
+        error: (error, stack) => ProfileErrorWidgetEnhanced(
+          errorMessage: error.toString(),
+          onRetry: () {
+            final userId = Supabase.instance.client.auth.currentUser?.id;
+            if (userId != null) {
+              ref.read(profileProvider(userId).notifier).getProfile();
+            }
+          },
+        ),
         data: (profile) => _buildProfileContent(context, profile),
       ),
     );
@@ -78,9 +104,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             automaticallyImplyLeading: false,
             actions: [
               _iconBtn(Icons.search, () {}),
-              _iconBtn(Icons.ios_share_outlined, () {}),
+              _iconBtn(Icons.bookmark_border, () {
+                openSavePostScreen(context);
+              }),
               _iconBtn(
-                Icons.more_horiz,
+                Icons.settings,
                 () => _showOptionsSheet(context, profile),
               ),
             ],
@@ -274,6 +302,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           // ─────────────────────────────────────────────────────────────────
           SliverPersistentHeader(
             pinned: true,
+
             delegate: _StickyTabBarDelegate(
               tabBar: TabBar(
                 controller: _tabController,
@@ -285,18 +314,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
                 ),
-                labelColor: Theme.of(context).colorScheme.onSurface,
-                unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
-                indicatorColor: Theme.of(context).colorScheme.onSurface,
+                labelColor: context.tokens.textPrimary,
+                unselectedLabelColor: context.tokens.textSecondary,
+                indicatorColor: context.tokens.brandOrange,
                 indicatorWeight: 2.5,
-                dividerColor: Theme.of(context).colorScheme.onSurface,
+                dividerColor: context.tokens.brandOrange,
                 tabs: const [
                   Tab(text: 'Posts'),
                   Tab(text: 'Comments'),
                   Tab(text: 'About'),
                 ],
               ),
-              color: Theme.of(context).colorScheme.onSurface,
+              color: context.tokens.bgPage,
             ),
           ),
         ];
@@ -305,8 +334,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildPostsTab(context),
-          _buildCommentsTab(context),
+          _buildPostsTab(context, profile.id),
+          _buildCommentsTab(context, profile.id),
           _buildAboutTab(context, profile),
         ],
       ),
@@ -335,9 +364,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return Container(
       width: (_avatarRadius + _avatarBorder) * 2,
       height: (_avatarRadius + _avatarBorder) * 2,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white, // white ring
+        color: context.tokens.brandOrange, // white ring
       ),
       padding: const EdgeInsets.all(_avatarBorder),
       child: CircleAvatar(
@@ -366,12 +395,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
     final items = [
       _StatItem(value: _formatCount(profile.karma), label: 'Karma'),
-      _StatItem(value: '0', label: 'Contributions', hasChevron: true),
+      // _StatItem(value: '0', label: 'Contributions', hasChevron: true),
       _StatItem(
         value: _calculateAccountAge(profile.createdAt),
         label: 'Account Age',
       ),
-      _StatItem(value: '0', label: 'Active In'),
+      // _StatItem(value: '0', label: 'Active In'),
     ];
 
     return IntrinsicHeight(
@@ -402,14 +431,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   fontSize: 17,
                 ),
               ),
-              if (item.hasChevron) ...[
-                const SizedBox(width: 2),
-                Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 2),
@@ -440,19 +461,174 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // Tabs
   // ───────────────────────────────────────────────────────────────────────────
 
-  Widget _buildPostsTab(BuildContext context) => _buildEmptyState(
-    context,
-    icon: Icons.article_outlined,
-    title: 'No posts yet',
-    subtitle: 'Posts you create will show up here',
-  );
+  Widget _buildPostsTab(BuildContext context, String userId) {
+    final postsAsync = ref.watch(userPostsProvider(userId));
+    final tokens = context.tokens;
 
-  Widget _buildCommentsTab(BuildContext context) => _buildEmptyState(
-    context,
-    icon: Icons.chat_bubble_outline,
-    title: 'No comments yet',
-    subtitle: 'Comments you write will show up here',
-  );
+    return ColoredBox(
+      color: tokens.bgCanvas,
+      child: postsAsync.when(
+        loading: () => ListView(
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          children: List.generate(
+            4,
+            (_) => const Padding(
+              padding: EdgeInsets.only(bottom: AppSpacing.sm),
+              child: SkeletonLoader(height: 200),
+            ),
+          ),
+        ),
+        error: (err, _) => ErrorWidgetCustom(
+          message: err.toString(),
+          onRetry: () => ref
+              .read(userPostsProvider(userId).notifier)
+              .fetchUserPosts(forceRefresh: true),
+        ),
+        data: (posts) {
+          if (posts.isEmpty) {
+            return RefreshIndicator(
+              color: tokens.brandOrange,
+              onRefresh: () async {
+                await ref
+                    .read(userPostsProvider(userId).notifier)
+                    .fetchUserPosts(forceRefresh: true);
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.45,
+                    child: _buildEmptyState(
+                      context,
+                      icon: Icons.article_outlined,
+                      title: 'No posts yet',
+                      subtitle: 'Posts you create will show up here',
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return RefreshIndicator(
+            color: tokens.brandOrange,
+            onRefresh: () async {
+              await ref
+                  .read(userPostsProvider(userId).notifier)
+                  .fetchUserPosts(forceRefresh: true);
+            },
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: 80),
+              itemCount: posts.length,
+              separatorBuilder: (_, _) => const SizedBox.shrink(),
+              itemBuilder: (context, index) {
+                final post = posts[index];
+                return FeedPostCard(
+                  post: post,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PostDetailsScreen(postId: post.id),
+                      ),
+                    );
+                  },
+                  onComment: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PostDetailsScreen(postId: post.id),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCommentsTab(BuildContext context, String userId) {
+    final commentsAsync = ref.watch(userCommentsProvider(userId));
+    final tokens = context.tokens;
+
+    return ColoredBox(
+      color: tokens.bgCanvas,
+      child: commentsAsync.when(
+        loading: () => ListView(
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          children: List.generate(
+            5,
+            (_) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: SkeletonLoader(height: 120),
+            ),
+          ),
+        ),
+        error: (err, _) => ErrorWidgetCustom(
+          message: err.toString(),
+          onRetry: () => ref
+              .read(userCommentsProvider(userId).notifier)
+              .fetchUserComments(forceRefresh: true),
+        ),
+        data: (comments) {
+          if (comments.isEmpty) {
+            return RefreshIndicator(
+              color: tokens.brandOrange,
+              onRefresh: () async {
+                await ref
+                    .read(userCommentsProvider(userId).notifier)
+                    .fetchUserComments(forceRefresh: true);
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.45,
+                    child: _buildEmptyState(
+                      context,
+                      icon: Icons.chat_bubble_outline,
+                      title: 'No comments yet',
+                      subtitle: 'Comments you write will show up here',
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return RefreshIndicator(
+            color: tokens.brandOrange,
+            onRefresh: () async {
+              await ref
+                  .read(userCommentsProvider(userId).notifier)
+                  .fetchUserComments(forceRefresh: true);
+            },
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: 80),
+              itemCount: comments.length,
+              itemBuilder: (context, index) {
+                final item = comments[index];
+                return ProfileCommentTile(
+                  item: item,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PostDetailsScreen(postId: item.postId),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildAboutTab(BuildContext context, UserProfileModel profile) {
     return ListView(
@@ -559,30 +735,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     required String title,
     required String subtitle,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 72,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            Icon(icon, size: 72, color: context.tokens.textMuted),
             const SizedBox(height: 16),
             Text(
               title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              style: context.rTypo.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.tokens.textPrimary,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
+              style: context.rTypo.bodyMedium.copyWith(
+                color: context.tokens.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -597,7 +770,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // ───────────────────────────────────────────────────────────────────────────
 
   void _showOptionsSheet(BuildContext context, UserProfileModel profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.onSurface,
@@ -692,11 +865,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 class _StatItem {
   final String value;
   final String label;
-  final bool hasChevron;
   const _StatItem({
     required this.value,
     required this.label,
-    this.hasChevron = false,
   });
 }
 

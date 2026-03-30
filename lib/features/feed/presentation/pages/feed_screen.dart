@@ -18,6 +18,7 @@ import 'package:mini_reddit_v2/features/feed/presentation/widgets/community_draw
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/empty_feed_widget.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/custom_app_bar.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
+import 'package:mini_reddit_v2/features/post/presentation/providers/save_post_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
@@ -139,6 +140,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         .votePost(postId: postId, value: value, authorId: post.authorId);
   }
 
+  Future<bool> _handleSave(String postId) async {
+    final post = ref
+        .read(feedProvider)
+        .feed
+        ?.firstWhere((post) => post.id == postId);
+    if (post == null) return false;
+    ref.read(savePostProvider(postId).notifier).savePost(postId);
+    return !post.isSaved;
+  }
+
   @override
   Widget build(BuildContext context) {
     final feedState = ref.watch(feedProvider);
@@ -155,6 +166,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           isError: true,
         );
         ref.read(snackBarProvider.notifier).state = null;
+      }
+    });
+
+    ref.listen(savePostSnackBarProvider, (previous, next) {
+      if (next != null) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        showCustomSnackBar(
+          context,
+          isDark: isDark,
+          message: next.message,
+          icon: next.isError ? Icons.error : Icons.check_circle,
+          color: next.isError ? Colors.red : Colors.green,
+          isError: next.isError,
+        );
+        ref.read(savePostSnackBarProvider.notifier).state = null;
       }
     });
 
@@ -245,6 +271,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 post.authorId == Supabase.instance.client.auth.currentUser?.id
                 ? () => _handleDeletePost(post.id)
                 : null,
+            onSave: () => _handleSave(post.id),
           ),
         );
       }, childCount: posts.length + 1),

@@ -167,8 +167,8 @@ class FeedNotifier extends StateNotifier<FeedState> {
         );
       },
       (feed) {
-        debugPrint("feed 0 ${feed[0].toJson()}");
-        debugPrint("feed 1 ${feed[1].toJson()}");
+        // debugPrint("feed 0 ${feed[0].toJson()}");
+        // debugPrint("feed 1 ${feed[1].toJson()}");
         state = state.copyWith(
           feed: feed,
           isLoading: false,

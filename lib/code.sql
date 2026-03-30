@@ -1127,8 +1127,10 @@ AS $$
     FROM public.profiles p
     WHERE p.id = p_user_id;
 $$;
+-- ============================================
+-- GET USER POSTS (UPDATED - matches FeedPostModel)
+-- ============================================
 
--- 8.2 Get User Posts
 CREATE OR REPLACE FUNCTION public.get_user_posts(
     p_target_user_id uuid,
     p_limit integer DEFAULT 20,
@@ -1141,32 +1143,102 @@ RETURNS TABLE (
     content text,
     link_url text,
     post_type text,
-    score integer,
-    comments_count integer,
     created_at timestamptz,
+    score integer,
+    hot_score double precision,
+    comments_count integer,
+    user_vote smallint,
+    images jsonb,
+    author_id uuid,
+    author_username text,
+    author_full_name text,
+    author_avatar_url text,
     community_id uuid,
     community_name text,
-    community_image_url text
+    community_image_url text,
+    flair_id uuid,
+    flair_name text,
+    flair_color text
 )
 LANGUAGE sql
 STABLE
 AS $$
-    SELECT 
+    SELECT
         p.id,
         p.title,
         p.content,
         p.link_url,
         p.post_type,
-        p.score,
-        p.comments_count,
         p.created_at,
-        c.id as community_id,
-        c.name as community_name,
-        c.image_url as community_image_url
+        p.score,
+        p.score::double precision /
+            POWER(
+                GREATEST(EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 + 2, 2.0),
+                1.5
+            ) AS hot_score,
+        p.comments_count,
+        (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_current_user_id LIMIT 1) AS user_vote,
+        (SELECT jsonb_agg(
+            jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+            ORDER BY pi.position
+         ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+        pr.id AS author_id,
+        pr.username AS author_username,
+        pr.full_name AS author_full_name,
+        pr.avatar_url AS author_avatar_url,
+        c.id AS community_id,
+        c.name AS community_name,
+        c.image_url AS community_image_url,
+        f.id AS flair_id,
+        f.name AS flair_name,
+        f.color AS flair_color
     FROM public.posts p
-    JOIN public.communities c ON p.community_id = c.id
+    LEFT JOIN public.profiles pr ON p.user_id = pr.id
+    LEFT JOIN public.communities c ON p.community_id = c.id
+    LEFT JOIN public.flairs f ON p.flair_id = f.id
     WHERE p.user_id = p_target_user_id AND p.is_deleted = false
     ORDER BY p.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+$$;
+
+-- ============================================
+-- GET USER COMMENTS (profile activity)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.get_user_comments(
+    p_target_user_id uuid,
+    p_limit integer DEFAULT 20,
+    p_offset integer DEFAULT 0,
+    p_current_user_id uuid DEFAULT NULL
+)
+RETURNS TABLE (
+    id uuid,
+    content text,
+    created_at timestamptz,
+    score integer,
+    post_id uuid,
+    post_title text,
+    community_name text,
+    user_vote smallint
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        c.id,
+        c.content,
+        c.created_at,
+        c.score,
+        p.id AS post_id,
+        p.title AS post_title,
+        co.name AS community_name,
+        (SELECT v.value FROM public.comment_votes v WHERE v.comment_id = c.id AND v.user_id = p_current_user_id LIMIT 1) AS user_vote
+    FROM public.comments c
+    JOIN public.posts p ON c.post_id = p.id
+    JOIN public.communities co ON p.community_id = co.id
+    WHERE c.user_id = p_target_user_id AND c.is_deleted = false AND p.is_deleted = false
+    ORDER BY c.created_at DESC
     LIMIT p_limit
     OFFSET p_offset;
 $$;
@@ -1344,10 +1416,23 @@ $$;
 -- ============================================
 
 -- ============================================
--- CREATE UPDATED FEED FUNCTIONS (WITH IMAGES)
+-- DROP ALL FUNCTIONS FIRST (to change return types)
 -- ============================================
 
--- 10.1 Get Hot Feed (with images)
+-- DROP FUNCTION IF EXISTS public.get_hot_feed(integer, integer, uuid, text[]);
+-- DROP FUNCTION IF EXISTS public.get_new_feed(integer, integer, uuid, text[]);
+-- DROP FUNCTION IF EXISTS public.get_top_feed(text, integer, integer, uuid, text[]);
+-- DROP FUNCTION IF EXISTS public.get_best_feed(uuid, integer, integer);
+-- DROP FUNCTION IF EXISTS public.search_posts(text, integer, integer, uuid, text[]);
+-- DROP FUNCTION IF EXISTS public.get_popular_feed(integer, integer, uuid, text[]);
+-- DROP FUNCTION IF EXISTS public.get_user_posts(uuid, integer, integer, uuid);
+-- DROP FUNCTION IF EXISTS public.get_community_details(uuid, uuid);
+-- DROP FUNCTION IF EXISTS public.edit_community(uuid, uuid, text, text, text, text);
+
+-- ============================================
+-- 1. GET HOT FEED (with is_saved)
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.get_hot_feed(
     p_limit integer DEFAULT 20,
     p_offset integer DEFAULT 0,
@@ -1369,6 +1454,7 @@ RETURNS TABLE (
     comments_count integer,
     created_at timestamptz,
     user_vote smallint,
+    is_saved boolean,
     images jsonb,
     community_id uuid,
     community_name text,
@@ -1398,6 +1484,7 @@ AS $$
         p.comments_count,
         p.created_at,
         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_user_id) AS is_saved,
         (SELECT jsonb_agg(
             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
             ORDER BY pi.position
@@ -1418,7 +1505,10 @@ AS $$
     OFFSET p_offset;
 $$;
 
--- 10.2 Get New Feed (with images)
+-- ============================================
+-- 2. GET NEW FEED (with is_saved)
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.get_new_feed(
     p_limit integer DEFAULT 20,
     p_offset integer DEFAULT 0,
@@ -1439,6 +1529,7 @@ RETURNS TABLE (
     comments_count integer,
     created_at timestamptz,
     user_vote smallint,
+    is_saved boolean,
     images jsonb,
     community_id uuid,
     community_name text,
@@ -1463,6 +1554,7 @@ AS $$
         p.comments_count,
         p.created_at,
         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_user_id) AS is_saved,
         (SELECT jsonb_agg(
             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
             ORDER BY pi.position
@@ -1483,7 +1575,10 @@ AS $$
     OFFSET p_offset;
 $$;
 
--- 10.3 Get Top Feed (with images)
+-- ============================================
+-- 3. GET TOP FEED (with is_saved)
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.get_top_feed(
     p_timeframe text DEFAULT 'all',
     p_limit integer DEFAULT 20,
@@ -1505,6 +1600,7 @@ RETURNS TABLE (
     comments_count integer,
     created_at timestamptz,
     user_vote smallint,
+    is_saved boolean,
     images jsonb,
     community_id uuid,
     community_name text,
@@ -1529,6 +1625,7 @@ AS $$
         p.comments_count,
         p.created_at,
         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_user_id) AS is_saved,
         (SELECT jsonb_agg(
             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
             ORDER BY pi.position
@@ -1556,7 +1653,10 @@ AS $$
     OFFSET p_offset;
 $$;
 
--- 10.4 Get Best Feed (calls get_hot_feed, no changes needed)
+-- ============================================
+-- 4. GET BEST FEED (with is_saved)
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.get_best_feed(
     p_user_id uuid,
     p_limit integer DEFAULT 20,
@@ -1577,6 +1677,7 @@ RETURNS TABLE (
     comments_count integer,
     created_at timestamptz,
     user_vote smallint,
+    is_saved boolean,
     images jsonb,
     community_id uuid,
     community_name text,
@@ -1600,7 +1701,10 @@ AS $$
     );
 $$;
 
--- 10.5 Search Posts (with images)
+-- ============================================
+-- 5. SEARCH POSTS (with is_saved)
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.search_posts(
     p_query text,
     p_limit integer DEFAULT 20,
@@ -1622,6 +1726,7 @@ RETURNS TABLE (
     comments_count integer,
     created_at timestamptz,
     user_vote smallint,
+    is_saved boolean,
     images jsonb,
     community_id uuid,
     community_name text,
@@ -1647,6 +1752,7 @@ AS $$
         p.comments_count,
         p.created_at,
         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_user_id) AS is_saved,
         (SELECT jsonb_agg(
             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
             ORDER BY pi.position
@@ -1669,10 +1775,14 @@ AS $$
     OFFSET p_offset;
 $$;
 
--- 10.6 Get Popular Feed (with images)
+-- ============================================
+-- 6. GET POPULAR FEED (with is_saved)
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.get_popular_feed(
     p_limit integer DEFAULT 20,
     p_offset integer DEFAULT 0,
+    p_user_id uuid DEFAULT NULL,
     p_community_names text[] DEFAULT NULL
 )
 RETURNS TABLE (
@@ -1689,6 +1799,8 @@ RETURNS TABLE (
     hot_score double precision,
     comments_count integer,
     created_at timestamptz,
+    user_vote smallint,
+    is_saved boolean,
     images jsonb,
     community_id uuid,
     community_name text,
@@ -1717,6 +1829,8 @@ AS $$
             ) AS hot_score,
         p.comments_count,
         p.created_at,
+        (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_user_id) AS is_saved,
         (SELECT jsonb_agg(
             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
             ORDER BY pi.position
@@ -1736,6 +1850,634 @@ AS $$
     LIMIT p_limit
     OFFSET p_offset;
 $$;
+
+-- ============================================
+-- 7. GET USER POSTS (with is_saved)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.get_user_posts(
+    p_target_user_id uuid,
+    p_limit integer DEFAULT 20,
+    p_offset integer DEFAULT 0,
+    p_current_user_id uuid DEFAULT NULL
+)
+RETURNS TABLE (
+    id uuid,
+    title text,
+    content text,
+    link_url text,
+    post_type text,
+    created_at timestamptz,
+    score integer,
+    hot_score double precision,
+    comments_count integer,
+    user_vote smallint,
+    is_saved boolean,
+    images jsonb,
+    author_id uuid,
+    author_username text,
+    author_full_name text,
+    author_avatar_url text,
+    community_id uuid,
+    community_name text,
+    community_image_url text,
+    flair_id uuid,
+    flair_name text,
+    flair_color text
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        p.id,
+        p.title,
+        p.content,
+        p.link_url,
+        p.post_type,
+        p.created_at,
+        p.score,
+        p.score::double precision /
+            POWER(
+                GREATEST(EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 + 2, 2.0),
+                1.5
+            ) AS hot_score,
+        p.comments_count,
+        (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_current_user_id LIMIT 1) AS user_vote,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_current_user_id) AS is_saved,
+        (SELECT jsonb_agg(
+            jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+            ORDER BY pi.position
+         ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+        pr.id AS author_id,
+        pr.username AS author_username,
+        pr.full_name AS author_full_name,
+        pr.avatar_url AS author_avatar_url,
+        c.id AS community_id,
+        c.name AS community_name,
+        c.image_url AS community_image_url,
+        f.id AS flair_id,
+        f.name AS flair_name,
+        f.color AS flair_color
+    FROM public.posts p
+    LEFT JOIN public.profiles pr ON p.user_id = pr.id
+    LEFT JOIN public.communities c ON p.community_id = c.id
+    LEFT JOIN public.flairs f ON p.flair_id = f.id
+    WHERE p.user_id = p_target_user_id AND p.is_deleted = false
+    ORDER BY p.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+$$;
+
+-- ============================================
+-- 8. GET COMMUNITY DETAILS (clean - no online)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.get_community_details(
+    p_community_id uuid,
+    p_current_user_id uuid DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_community jsonb;
+    v_admins jsonb;
+    v_stats jsonb;
+    v_user_status jsonb;
+BEGIN
+    -- 1. Community data
+    SELECT jsonb_build_object(
+        'id', c.id,
+        'name', c.name,
+        'description', c.description,
+        'image_url', c.image_url,
+        'banner_url', c.banner_url,
+        'created_at', c.created_at,
+        'created_by', c.created_by
+    ) INTO v_community
+    FROM public.communities c
+    WHERE c.id = p_community_id;
+    
+    IF v_community IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Community not found');
+    END IF;
+    
+    -- 2. Admins only
+    SELECT jsonb_agg(
+        jsonb_build_object(
+            'id', p.id,
+            'username', p.username,
+            'avatar_url', p.avatar_url,
+            'role', cm.role
+        ) ORDER BY cm.joined_at
+    ) INTO v_admins
+    FROM public.community_members cm
+    JOIN public.profiles p ON cm.user_id = p.id
+    WHERE cm.community_id = p_community_id AND cm.role = 'admin';
+    
+    -- 3. Stats (members + posts only)
+    SELECT jsonb_build_object(
+        'members_count', (SELECT COUNT(*) FROM public.community_members WHERE community_id = p_community_id),
+        'posts_count', (SELECT COUNT(*) FROM public.posts WHERE community_id = p_community_id AND is_deleted = false)
+    ) INTO v_stats;
+    
+    -- 4. User status
+    SELECT jsonb_build_object(
+        'is_member', EXISTS(SELECT 1 FROM public.community_members WHERE community_id = p_community_id AND user_id = p_current_user_id),
+        'is_admin', EXISTS(SELECT 1 FROM public.community_members WHERE community_id = p_community_id AND user_id = p_current_user_id AND role = 'admin'),
+        'joined_at', (SELECT joined_at FROM public.community_members WHERE community_id = p_community_id AND user_id = p_current_user_id)
+    ) INTO v_user_status;
+    
+    RETURN jsonb_build_object(
+        'success', true,
+        'community', v_community,
+        'admins', COALESCE(v_admins, '[]'::jsonb),
+        'stats', v_stats,
+        'user_status', COALESCE(v_user_status, '{"is_member": false, "is_admin": false}'::jsonb)
+    );
+END;
+$$;
+
+-- ============================================
+-- 9. EDIT COMMUNITY (admin only)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.edit_community(
+    p_community_id uuid,
+    p_user_id uuid,
+    p_name text DEFAULT NULL,
+    p_description text DEFAULT NULL,
+    p_image_url text DEFAULT NULL,
+    p_banner_url text DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_is_admin boolean;
+    v_current_name text;
+    v_new_name text;
+BEGIN
+    -- 1. Check if user is admin
+    SELECT role = 'admin' INTO v_is_admin
+    FROM public.community_members
+    WHERE community_id = p_community_id AND user_id = p_user_id;
+    
+    IF NOT FOUND OR NOT v_is_admin THEN
+        RETURN jsonb_build_object(
+            'success', false, 
+            'message', 'Unauthorized: Only admins can edit community'
+        );
+    END IF;
+    
+    -- 2. Validate name if changed
+    IF p_name IS NOT NULL THEN
+        SELECT name INTO v_current_name 
+        FROM public.communities 
+        WHERE id = p_community_id;
+        
+        IF p_name != v_current_name THEN
+            IF EXISTS (SELECT 1 FROM public.communities WHERE name = p_name AND id != p_community_id) THEN
+                RETURN jsonb_build_object(
+                    'success', false, 
+                    'message', 'Community name already exists'
+                );
+            END IF;
+            
+            IF LENGTH(TRIM(p_name)) < 3 THEN
+                RETURN jsonb_build_object(
+                    'success', false, 
+                    'message', 'Community name must be at least 3 characters'
+                );
+            END IF;
+            
+            v_new_name := TRIM(p_name);
+        END IF;
+    END IF;
+    
+    -- 3. Update
+    UPDATE public.communities
+    SET 
+        name = COALESCE(v_new_name, name),
+        description = COALESCE(p_description, description),
+        image_url = COALESCE(p_image_url, image_url),
+        banner_url = COALESCE(p_banner_url, banner_url),
+        updated_at = now()
+    WHERE id = p_community_id;
+    
+    RETURN jsonb_build_object(
+        'success', true,
+        'message', 'Community updated successfully'
+    );
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', SQLERRM
+        );
+END;
+$$;
+
+-- ============================================
+-- END
+-- ============================================
+
+-- ============================================
+-- CREATE UPDATED FEED FUNCTIONS (WITH IMAGES)
+-- ============================================
+
+-- -- 10.1 Get Hot Feed (with images)
+-- CREATE OR REPLACE FUNCTION public.get_hot_feed(
+--     p_limit integer DEFAULT 20,
+--     p_offset integer DEFAULT 0,
+--     p_user_id uuid DEFAULT NULL,
+--     p_community_names text[] DEFAULT NULL
+-- )
+-- RETURNS TABLE (
+--     id uuid,
+--     author_id uuid,
+--     author_username text,
+--     author_full_name text,
+--     author_avatar_url text,
+--     title text,
+--     content text,
+--     link_url text,
+--     post_type text,
+--     score integer,
+--     hot_score double precision,
+--     comments_count integer,
+--     created_at timestamptz,
+--     user_vote smallint,
+--     images jsonb,
+--     community_id uuid,
+--     community_name text,
+--     community_image_url text,
+--     flair_name text,
+--     flair_color text
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     SELECT
+--         p.id,
+--         p.user_id AS author_id,
+--         pr.username AS author_username,
+--         pr.full_name AS author_full_name,
+--         pr.avatar_url AS author_avatar_url,
+--         p.title,
+--         p.content,
+--         p.link_url,
+--         p.post_type,
+--         p.score,
+--         p.score::double precision /
+--             POWER(
+--                 GREATEST(EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 + 2, 2.0),
+--                 1.5
+--             ) AS hot_score,
+--         p.comments_count,
+--         p.created_at,
+--         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+--         (SELECT jsonb_agg(
+--             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+--             ORDER BY pi.position
+--          ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+--         c.id AS community_id,
+--         c.name AS community_name,
+--         c.image_url AS community_image_url,
+--         f.name AS flair_name,
+--         f.color AS flair_color
+--     FROM public.posts p
+--     LEFT JOIN public.profiles pr ON p.user_id = pr.id
+--     LEFT JOIN public.communities c ON p.community_id = c.id
+--     LEFT JOIN public.flairs f ON p.flair_id = f.id
+--     WHERE p.is_deleted = false
+--     AND (p_community_names IS NULL OR c.name = ANY(p_community_names))
+--     ORDER BY hot_score DESC
+--     LIMIT p_limit
+--     OFFSET p_offset;
+-- $$;
+--
+-- -- 10.2 Get New Feed (with images)
+-- CREATE OR REPLACE FUNCTION public.get_new_feed(
+--     p_limit integer DEFAULT 20,
+--     p_offset integer DEFAULT 0,
+--     p_user_id uuid DEFAULT NULL,
+--     p_community_names text[] DEFAULT NULL
+-- )
+-- RETURNS TABLE (
+--     id uuid,
+--     author_id uuid,
+--     author_username text,
+--     author_full_name text,
+--     author_avatar_url text,
+--     title text,
+--     content text,
+--     link_url text,
+--     post_type text,
+--     score integer,
+--     comments_count integer,
+--     created_at timestamptz,
+--     user_vote smallint,
+--     images jsonb,
+--     community_id uuid,
+--     community_name text,
+--     community_image_url text,
+--     flair_name text,
+--     flair_color text
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     SELECT
+--         p.id,
+--         p.user_id AS author_id,
+--         pr.username AS author_username,
+--         pr.full_name AS author_full_name,
+--         pr.avatar_url AS author_avatar_url,
+--         p.title,
+--         p.content,
+--         p.link_url,
+--         p.post_type,
+--         p.score,
+--         p.comments_count,
+--         p.created_at,
+--         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+--         (SELECT jsonb_agg(
+--             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+--             ORDER BY pi.position
+--          ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+--         c.id AS community_id,
+--         c.name AS community_name,
+--         c.image_url AS community_image_url,
+--         f.name AS flair_name,
+--         f.color AS flair_color
+--     FROM public.posts p
+--     LEFT JOIN public.profiles pr ON p.user_id = pr.id
+--     LEFT JOIN public.communities c ON p.community_id = c.id
+--     LEFT JOIN public.flairs f ON p.flair_id = f.id
+--     WHERE p.is_deleted = false
+--     AND (p_community_names IS NULL OR c.name = ANY(p_community_names))
+--     ORDER BY p.created_at DESC
+--     LIMIT p_limit
+--     OFFSET p_offset;
+-- $$;
+
+-- -- 10.3 Get Top Feed (with images)
+-- CREATE OR REPLACE FUNCTION public.get_top_feed(
+--     p_timeframe text DEFAULT 'all',
+--     p_limit integer DEFAULT 20,
+--     p_offset integer DEFAULT 0,
+--     p_user_id uuid DEFAULT NULL,
+--     p_community_names text[] DEFAULT NULL
+-- )
+-- RETURNS TABLE (
+--     id uuid,
+--     author_id uuid,
+--     author_username text,
+--     author_full_name text,
+--     author_avatar_url text,
+--     title text,
+--     content text,
+--     link_url text,
+--     post_type text,
+--     score integer,
+--     comments_count integer,
+--     created_at timestamptz,
+--     user_vote smallint,
+--     images jsonb,
+--     community_id uuid,
+--     community_name text,
+--     community_image_url text,
+--     flair_name text,
+--     flair_color text
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     SELECT
+--         p.id,
+--         p.user_id AS author_id,
+--         pr.username AS author_username,
+--         pr.full_name AS author_full_name,
+--         pr.avatar_url AS author_avatar_url,
+--         p.title,
+--         p.content,
+--         p.link_url,
+--         p.post_type,
+--         p.score,
+--         p.comments_count,
+--         p.created_at,
+--         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+--         (SELECT jsonb_agg(
+--             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+--             ORDER BY pi.position
+--          ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+--         c.id AS community_id,
+--         c.name AS community_name,
+--         c.image_url AS community_image_url,
+--         f.name AS flair_name,
+--         f.color AS flair_color
+--     FROM public.posts p
+--     LEFT JOIN public.profiles pr ON p.user_id = pr.id
+--     LEFT JOIN public.communities c ON p.community_id = c.id
+--     LEFT JOIN public.flairs f ON p.flair_id = f.id
+--     WHERE p.is_deleted = false
+--     AND (p_community_names IS NULL OR c.name = ANY(p_community_names))
+--     AND CASE p_timeframe
+--         WHEN 'day' THEN p.created_at > NOW() - INTERVAL '1 day'
+--         WHEN 'week' THEN p.created_at > NOW() - INTERVAL '7 days'
+--         WHEN 'month' THEN p.created_at > NOW() - INTERVAL '30 days'
+--         WHEN 'year' THEN p.created_at > NOW() - INTERVAL '365 days'
+--         ELSE true
+--     END
+--     ORDER BY p.score DESC
+--     LIMIT p_limit
+--     OFFSET p_offset;
+-- $$;
+--
+-- -- 10.4 Get Best Feed (calls get_hot_feed, no changes needed)
+-- CREATE OR REPLACE FUNCTION public.get_best_feed(
+--     p_user_id uuid,
+--     p_limit integer DEFAULT 20,
+--     p_offset integer DEFAULT 0
+-- )
+-- RETURNS TABLE (
+--     id uuid,
+--     author_id uuid,
+--     author_username text,
+--     author_full_name text,
+--     author_avatar_url text,
+--     title text,
+--     content text,
+--     link_url text,
+--     post_type text,
+--     score integer,
+--     hot_score double precision,
+--     comments_count integer,
+--     created_at timestamptz,
+--     user_vote smallint,
+--     images jsonb,
+--     community_id uuid,
+--     community_name text,
+--     community_image_url text,
+--     flair_name text,
+--     flair_color text
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     SELECT * FROM public.get_hot_feed(
+--         p_limit,
+--         p_offset,
+--         p_user_id,
+--         ARRAY(
+--             SELECT c.name 
+--             FROM public.community_members cm
+--             JOIN public.communities c ON cm.community_id = c.id
+--             WHERE cm.user_id = p_user_id
+--         )
+--     );
+-- $$;
+--
+-- 10.5 Search Posts (with images)
+-- CREATE OR REPLACE FUNCTION public.search_posts(
+--     p_query text,
+--     p_limit integer DEFAULT 20,
+--     p_offset integer DEFAULT 0,
+--     p_user_id uuid DEFAULT NULL,
+--     p_community_names text[] DEFAULT NULL
+-- )
+-- RETURNS TABLE (
+--     id uuid,
+--     author_id uuid,
+--     author_username text,
+--     author_full_name text,
+--     author_avatar_url text,
+--     title text,
+--     content text,
+--     link_url text,
+--     post_type text,
+--     score integer,
+--     comments_count integer,
+--     created_at timestamptz,
+--     user_vote smallint,
+--     images jsonb,
+--     community_id uuid,
+--     community_name text,
+--     community_image_url text,
+--     flair_name text,
+--     flair_color text,
+--     relevance double precision
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     SELECT
+--         p.id,
+--         p.user_id AS author_id,
+--         pr.username AS author_username,
+--         pr.full_name AS author_full_name,
+--         pr.avatar_url AS author_avatar_url,
+--         p.title,
+--         p.content,
+--         p.link_url,
+--         p.post_type,
+--         p.score,
+--         p.comments_count,
+--         p.created_at,
+--         (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+--         (SELECT jsonb_agg(
+--             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+--             ORDER BY pi.position
+--          ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+--         c.id AS community_id,
+--         c.name AS community_name,
+--         c.image_url AS community_image_url,
+--         f.name AS flair_name,
+--         f.color AS flair_color,
+--         ts_rank(to_tsvector('english', p.title || ' ' || COALESCE(p.content, '')), plainto_tsquery('english', p_query)) AS relevance
+--     FROM public.posts p
+--     LEFT JOIN public.profiles pr ON p.user_id = pr.id
+--     LEFT JOIN public.communities c ON p.community_id = c.id
+--     LEFT JOIN public.flairs f ON p.flair_id = f.id
+--     WHERE p.is_deleted = false
+--     AND (p_community_names IS NULL OR c.name = ANY(p_community_names))
+--     AND (p.title ILIKE '%' || p_query || '%' OR p.content ILIKE '%' || p_query || '%')
+--     ORDER BY relevance DESC, p.score DESC
+--     LIMIT p_limit
+--     OFFSET p_offset;
+-- $$;
+
+-- -- 10.6 Get Popular Feed (with images)
+-- CREATE OR REPLACE FUNCTION public.get_popular_feed(
+--     p_limit integer DEFAULT 20,
+--     p_offset integer DEFAULT 0,
+--     p_community_names text[] DEFAULT NULL
+-- )
+-- RETURNS TABLE (
+--     id uuid,
+--     author_id uuid,
+--     author_username text,
+--     author_full_name text,
+--     author_avatar_url text,
+--     title text,
+--     content text,
+--     link_url text,
+--     post_type text,
+--     score integer,
+--     hot_score double precision,
+--     comments_count integer,
+--     created_at timestamptz,
+--     images jsonb,
+--     community_id uuid,
+--     community_name text,
+--     community_image_url text,
+--     flair_name text,
+--     flair_color text
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     SELECT
+--         p.id,
+--         p.user_id AS author_id,
+--         pr.username AS author_username,
+--         pr.full_name AS author_full_name,
+--         pr.avatar_url AS author_avatar_url,
+--         p.title,
+--         p.content,
+--         p.link_url,
+--         p.post_type,
+--         p.score,
+--         p.score::double precision /
+--             POWER(
+--                 GREATEST(EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 + 2, 2.0),
+--                 1.5
+--             ) AS hot_score,
+--         p.comments_count,
+--         p.created_at,
+--         (SELECT jsonb_agg(
+--             jsonb_build_object('id', pi.id, 'url', pi.image_url, 'position', pi.position)
+--             ORDER BY pi.position
+--          ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+--         c.id AS community_id,
+--         c.name AS community_name,
+--         c.image_url AS community_image_url,
+--         f.name AS flair_name,
+--         f.color AS flair_color
+--     FROM public.posts p
+--     LEFT JOIN public.profiles pr ON p.user_id = pr.id
+--     LEFT JOIN public.communities c ON p.community_id = c.id
+--     LEFT JOIN public.flairs f ON p.flair_id = f.id
+--     WHERE p.is_deleted = false
+--     AND (p_community_names IS NULL OR c.name = ANY(p_community_names))
+--     ORDER BY hot_score DESC
+--     LIMIT p_limit
+--     OFFSET p_offset;
+-- $$;
 
 -- ============================================
 -- END OF SETUP

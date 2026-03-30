@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/services/chash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileDataSource {
+  final cash = CashService();
+
   // Get profile
   Future<UserProfileModel> getProfile(String userId) async {
     print('Fetching profile for user: $userId');
@@ -21,6 +24,111 @@ class ProfileDataSource {
       return UserProfileModel.fromJson(response as Map<String, dynamic>);
     }
     throw Exception('Profile not found');
+  }
+
+  // ============================================
+  // GET USER POSTS (NEW!)
+  // ============================================
+
+  Future<List<FeedPostModel>> getUserPosts({
+    bool forceRefresh = false,
+    required String userId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    dynamic response;
+    bool needToCash = true;
+    if (cash.exist(Key.userPost) && !forceRefresh) {
+      response = cash.get(Key.userPost);
+      needToCash = false;
+    } else {
+      response = await Supabase.instance.client.rpc(
+        'get_user_posts',
+        params: {
+          'p_target_user_id': userId,
+          'p_limit': limit,
+          'p_offset': offset,
+          'p_current_user_id': Supabase.instance.client.auth.currentUser?.id,
+        },
+      );
+    }
+
+    if (response == null) return [];
+
+    final List<dynamic> data = response is List ? response : [response];
+
+    if (needToCash) cash.save(Key.userPost, data);
+
+    return data
+        .map((json) => FeedPostModel.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<UserProfileCommentItem>> getUserComments({
+    bool forceRefresh = false,
+    required String userId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    dynamic response;
+    bool needToCash = true;
+    if (cash.exist(Key.userComment) && !forceRefresh) {
+      response = cash.get(Key.userComment);
+      needToCash = false;
+    } else {
+      response = await Supabase.instance.client.rpc(
+        'get_user_comments',
+        params: {
+          'p_target_user_id': userId,
+          'p_limit': limit,
+          'p_offset': offset,
+          'p_current_user_id': Supabase.instance.client.auth.currentUser?.id,
+        },
+      );
+    }
+
+    if (response == null) return [];
+
+    if (needToCash) cash.save(Key.userComment, response);
+
+    final List<dynamic> data = response is List ? response : [response];
+
+    return data
+        .map(
+          (json) =>
+              UserProfileCommentItem.fromJson(json as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  Future<List<FeedPostModel>> getUserSavedPosts({
+    bool forceRefresh = false,
+    required String userId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    dynamic response;
+    bool needToCash = true;
+
+    if (cash.exist(Key.userSavedPost) && !forceRefresh) {
+      response = cash.get(Key.userSavedPost);
+      needToCash = false;
+    } else {
+      response = await Supabase.instance.client.rpc(
+        'get_saved_posts',
+        params: {'p_user_id': userId, 'p_limit': limit, 'p_offset': offset},
+      );
+    }
+
+    if (response == null) return [];
+
+    final List<dynamic> data = response is List ? response : [response];
+
+    if (needToCash) cash.save(Key.userSavedPost, data);
+
+    return data
+        .map((json) => FeedPostModel.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<UserProfileModel> updateProfile({
