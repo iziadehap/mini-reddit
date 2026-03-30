@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
 
@@ -25,8 +26,8 @@ class _CreateCommunityDialogState extends ConsumerState<CreateCommunityScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
-  static const _redditOrange = Color(0xFFFF4500);
-  static const _maxNameLength = 21;
+  // static const _redditOrange = Color(0xFFFF4500);
+  // static const _maxNameLength = 21;
 
   @override
   void initState() {
@@ -128,17 +129,19 @@ class _CreateCommunityDialogState extends ConsumerState<CreateCommunityScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0D1117) : Colors.white;
-    final surface = isDark ? const Color(0xFF161B22) : const Color(0xFFF6F8FA);
-    final border = isDark ? const Color(0xFF30363D) : const Color(0xFFD0D7DE);
-    final textPrimary = isDark ? Colors.white : const Color(0xFF1C2128);
-    final textSecondary = isDark
-        ? const Color(0xFF8B949E)
-        : const Color(0xFF656D76);
+    final tokens = context.tokens;
+
+    // final isDark = Theme.of(context).brightness == Brightness.dark;
+    // final bg = isDark ? const Color(0xFF0D1117) : Colors.white;
+    // final surface = isDark ? const Color(0xFF161B22) : const Color(0xFFF6F8FA);
+    // final border = isDark ? const Color(0xFF30363D) : const Color(0xFFD0D7DE);
+    // final textPrimary = isDark ? Colors.white : const Color(0xFF1C2128);
+    // final textSecondary = isDark
+    //     ? const Color(0xFF8B949E)
+    //     : const Color(0xFF656D76);
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: tokens.bgCanvas,
       body: FadeTransition(
         opacity: _fadeAnim,
         child: SafeArea(
@@ -146,9 +149,10 @@ class _CreateCommunityDialogState extends ConsumerState<CreateCommunityScreen>
             children: [
               // ── Top Bar ──────────────────────────────────────────
               _TopBar(
-                isDark: isDark,
-                border: border,
-                textPrimary: textPrimary,
+                context: context,
+                // isDark: isDark,
+                // border: border,
+                // textPrimary: textPrimary,
                 canCreate: _canCreate,
                 isLoading: _isLoading,
                 onClose: () => Navigator.pop(context),
@@ -170,59 +174,55 @@ class _CreateCommunityDialogState extends ConsumerState<CreateCommunityScreen>
                       // Avatar picker centered
                       Center(
                         child: _AvatarPicker(
-                          isDark: isDark,
+                          // isDark: isDark,
                           selectedImage: _selectedImage,
                           onTap: _pickImage,
+                          context: context,
                         ),
                       ),
                       const SizedBox(height: 32),
 
                       // Community Name
-                      _SectionLabel(
-                        label: 'Community Name',
-                        textPrimary: textPrimary,
-                      ),
+                      _SectionLabel(label: 'Community Name', context: context),
                       const SizedBox(height: 4),
                       Text(
                         'Names including capitalization cannot be changed.',
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 12,
-                          height: 1.4,
-                        ),
+                        style: TextStyle(fontSize: 12, height: 1.4),
                       ),
                       const SizedBox(height: 12),
                       _NameField(
                         controller: _nameController,
-                        isDark: isDark,
-                        surface: surface,
-                        border: border,
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
                         onChanged: (_) => setState(() {}),
+                        context: context,
                       ),
                       const SizedBox(height: 8),
                       _CharCounter(
-                        current: _nameController.text.length,
-                        max: _maxNameLength,
-                        textSecondary: textSecondary,
+                        current: _nameController.text.length.toDouble(),
+                        max: 21,
+                        textSecondary: context.tokens.textSecondary,
                       ),
                       const SizedBox(height: 24),
 
                       // Description
                       _SectionLabel(
+                        context: context,
                         label: 'Description',
-                        textPrimary: textPrimary,
                         optional: true,
                       ),
                       const SizedBox(height: 12),
                       _DescriptionField(
                         controller: _descriptionController,
-                        isDark: isDark,
-                        surface: surface,
-                        border: border,
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
+                        context: context,
+                        // isDark: null,
+                        // surface: null,
+                        // border: null,
+                        // textPrimary: null,
+                        // textSecondary: null,
+                        // isDark: isDark,
+                        // surface: surface,
+                        // border: border,
+                        // textPrimary: textPrimary,
+                        // textSecondary: textSecondary,
                       ),
 
                       // Error Banner
@@ -243,23 +243,28 @@ class _CreateCommunityDialogState extends ConsumerState<CreateCommunityScreen>
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({
-    required this.isDark,
-    required this.border,
-    required this.textPrimary,
+  _TopBar({
+    required this.context,
+    // required this.isDark,
+    // required this.border,
+    // required this.textPrimary,
     required this.canCreate,
     required this.isLoading,
     required this.onClose,
     required this.onCreate,
   });
-
-  final bool isDark;
-  final Color border;
-  final Color textPrimary;
+  final BuildContext context;
+  // final bool isDark;
+  // final Color border;
+  // final Color textPrimary;
   final bool canCreate;
   final bool isLoading;
   final VoidCallback onClose;
   final VoidCallback onCreate;
+
+  late final tokens = context.tokens;
+  late final border = tokens.cardBorder;
+  late final textPrimary = tokens.textPrimary;
 
   static const _redditOrange = Color(0xFFFF4500);
 
@@ -340,13 +345,15 @@ class _TopBar extends StatelessWidget {
 }
 
 class _AvatarPicker extends StatelessWidget {
-  const _AvatarPicker({
-    required this.isDark,
+  _AvatarPicker({
+    required this.context,
+    // required this.isDark,
     required this.selectedImage,
     required this.onTap,
   });
 
-  final bool isDark;
+  final BuildContext context;
+  // final bool isDark;
   final File? selectedImage;
   final VoidCallback onTap;
 
@@ -367,15 +374,11 @@ class _AvatarPicker extends StatelessWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark
-                      ? const Color(0xFF21262D)
-                      : const Color(0xFFF0F0F0),
+                  color: context.tokens.bgPage,
                   border: Border.all(
                     color: hasImage
-                        ? _redditOrange
-                        : (isDark
-                              ? const Color(0xFF30363D)
-                              : const Color(0xFFD8D8D8)),
+                        ? context.tokens.brandOrange
+                        : context.tokens.cardBorder,
                     width: hasImage ? 2.5 : 1.5,
                   ),
                   image: hasImage
@@ -389,9 +392,7 @@ class _AvatarPicker extends StatelessWidget {
                     ? Icon(
                         Icons.photo_camera_rounded,
                         size: 32,
-                        color: isDark
-                            ? const Color(0xFF8B949E)
-                            : const Color(0xFFAAAAAA),
+                        color: context.tokens.textSecondary,
                       )
                     : null,
               ),
@@ -432,13 +433,13 @@ class _AvatarPicker extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({
+    required this.context,
     required this.label,
-    required this.textPrimary,
     this.optional = false,
   });
 
   final String label;
-  final Color textPrimary;
+  final BuildContext context;
   final bool optional;
 
   @override
@@ -448,7 +449,7 @@ class _SectionLabel extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: textPrimary,
+            color: context.tokens.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -470,22 +471,15 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _NameField extends StatelessWidget {
-  const _NameField({
+  _NameField({
     required this.controller,
-    required this.isDark,
-    required this.surface,
-    required this.border,
-    required this.textPrimary,
-    required this.textSecondary,
+    required this.context,
     required this.onChanged,
   });
 
+  final BuildContext context;
+
   final TextEditingController controller;
-  final bool isDark;
-  final Color surface;
-  final Color border;
-  final Color textPrimary;
-  final Color textSecondary;
   final ValueChanged<String> onChanged;
 
   static const _redditOrange = Color(0xFFFF4500);
@@ -502,7 +496,7 @@ class _NameField extends StatelessWidget {
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
       ],
-      style: TextStyle(color: textPrimary, fontSize: 15),
+      style: TextStyle(color: context.tokens.textPrimary, fontSize: 15),
       decoration: InputDecoration(
         prefixText: 'r/',
         prefixStyle: TextStyle(
@@ -511,20 +505,20 @@ class _NameField extends StatelessWidget {
           fontSize: 15,
         ),
         filled: true,
-        fillColor: surface,
+        fillColor: context.tokens.bgInput,
         hintText: 'community_name',
-        hintStyle: TextStyle(color: textSecondary, fontSize: 15),
+        hintStyle: TextStyle(color: context.tokens.textSecondary, fontSize: 15),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: border),
+          borderSide: BorderSide(color: context.tokens.borderDefault),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: border),
+          borderSide: BorderSide(color: context.tokens.borderDefault),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -542,8 +536,8 @@ class _CharCounter extends StatelessWidget {
     required this.textSecondary,
   });
 
-  final int current;
-  final int max;
+  final double current;
+  final double max;
   final Color textSecondary;
 
   @override
@@ -567,23 +561,24 @@ class _CharCounter extends StatelessWidget {
 }
 
 class _DescriptionField extends StatelessWidget {
-  const _DescriptionField({
+  _DescriptionField({
+    required this.context,
     required this.controller,
-    required this.isDark,
-    required this.surface,
-    required this.border,
-    required this.textPrimary,
-    required this.textSecondary,
+    // required this.isDark,
+    // required this.surface,
+    // required this.border,
+    // required this.textPrimary,
   });
 
+  late final tokens = context.tokens;
+  late final border = tokens.cardBorder;
+  late final textPrimary = tokens.textPrimary;
+  final BuildContext context;
   final TextEditingController controller;
-  final bool isDark;
-  final Color surface;
-  final Color border;
-  final Color textPrimary;
-  final Color textSecondary;
-
-  static const _redditOrange = Color(0xFFFF4500);
+  // final bool isDark;
+  // final Color surface;
+  // final Color border;
+  // final Color textPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -594,9 +589,9 @@ class _DescriptionField extends StatelessWidget {
       style: TextStyle(color: textPrimary, fontSize: 15),
       decoration: InputDecoration(
         filled: true,
-        fillColor: surface,
+        fillColor: tokens.bgPage,
         hintText: 'What is this community about?',
-        hintStyle: TextStyle(color: textSecondary, fontSize: 15),
+        hintStyle: TextStyle(color: tokens.textSecondary, fontSize: 15),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -611,7 +606,7 @@ class _DescriptionField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: _redditOrange, width: 1.5),
+          borderSide: BorderSide(color: tokens.brandOrange, width: 1.5),
         ),
       ),
     );

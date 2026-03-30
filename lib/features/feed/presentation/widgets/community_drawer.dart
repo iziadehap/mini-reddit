@@ -346,8 +346,7 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                CommunityScreen(communityName: community.name),
+            builder: (context) => CommunityScreen(communityId: community.name),
           ),
         );
       },

@@ -12,7 +12,7 @@ final fetchCommunitiesProvider =
     >((ref) {
       return CommunitiesNotifier(
         ref: ref,
-        communitiesRepo: CommunitiesRepoImpl(CommunitiesDataSource()),
+        communitiesRepo: CommunitiesRepoImpl(communitiesDataSource: CommunitiesDataSource()),
       );
     });
 
