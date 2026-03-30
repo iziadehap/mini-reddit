@@ -5,17 +5,18 @@ import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
 import 'package:mini_reddit_v2/core/widgets/skeleton_loader.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
-import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
-import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_state.dart';
-import 'package:mini_reddit_v2/features/feed/presentation/widgets/community_header.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/community_details_provider.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_community_posts_provider.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/widgets/community_header.dart';
+import 'package:mini_reddit_v2/features/post/presentation/pages/create_post_screen.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/post_card.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CommunityScreen extends ConsumerStatefulWidget {
-  final String communityName;
-  
-  const CommunityScreen({super.key, required this.communityName});
+  final String communityId;
+
+  const CommunityScreen({super.key, required this.communityId});
 
   @override
   ConsumerState<CommunityScreen> createState() => _CommunityScreenState();
@@ -24,56 +25,54 @@ class CommunityScreen extends ConsumerStatefulWidget {
 class _CommunityScreenState extends ConsumerState<CommunityScreen> {
   final ScrollController _scrollController = ScrollController();
 
+  /// Offset threshold (px) after which the app bar title fades in.
+  static const double _stickyTitleThreshold = 150.0;
+  bool _showStickyTitle = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
     _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final position = _scrollController.position;
-    if (position.pixels >= position.maxScrollExtent - 300) {
-      final state = ref.read(communityFeedProvider(widget.communityName));
-      if (state.feed?.isEmpty ?? true) return;
-      if (state.isLoadMore || state.isEnd || state.isLoading) return;
-      ref
-          .read(communityFeedProvider(widget.communityName).notifier)
-          .loadMoreFeed();
-    }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
-  Future<void> _refreshFeed() async {
-    await ref
-        .read(communityFeedProvider(widget.communityName).notifier)
-        .firstFetchFeed();
+  void _onScroll() {
+    final show =
+        _scrollController.hasClients &&
+        _scrollController.offset > _stickyTitleThreshold;
+    if (show != _showStickyTitle) setState(() => _showStickyTitle = show);
   }
 
-  void _handleVote(FeedPostModel post, int value) {
+  void _fetchData() {
     ref
-        .read(communityFeedProvider(widget.communityName).notifier)
-        .votePost(postId: post.id, value: value, authorId: post.authorId);
+        .read(communityDetailsProvider.notifier)
+        .fetchCommunityDetails(widget.communityId);
+    ref
+        .read(fetchCommunityPostsProvider.notifier)
+        .fetchCommunityPosts(widget.communityId);
   }
 
-  void _navigateToPostDetails(String postId) {
+  Future<void> _refresh() async => _fetchData();
+
+  void _navigateToPost(String postId) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => PostDetailsScreen(postId: postId),
-      ),
+      MaterialPageRoute(builder: (_) => PostDetailsScreen(postId: postId)),
     );
   }
 
-  void _handleDeletePost(String postId) {
+  void _handleDelete(String postId) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Delete Post'),
         content: const Text('Are you sure you want to delete this post?'),
         actions: [
@@ -95,139 +94,364 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final feedState = ref.watch(communityFeedProvider(widget.communityName));
     final tokens = context.tokens;
+    final detailsState = ref.watch(communityDetailsProvider);
+    final postsState = ref.watch(fetchCommunityPostsProvider);
 
     return Scaffold(
       backgroundColor: tokens.bgCanvas,
       body: RefreshIndicator(
-        onRefresh: _refreshFeed,
+        onRefresh: _refresh,
         color: tokens.brandOrange,
         backgroundColor: tokens.bgSurface,
         child: CustomScrollView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverAppBar(
-              backgroundColor: tokens.bgSurface,
-              floating: true,
-              snap: true,
-              elevation: 0,
-              leading: BackButton(color: tokens.textPrimary),
-              title: Text(
-                'r/${widget.communityName}',
+            _buildAppBar(context, detailsState, tokens),
+            _buildHeader(detailsState),
+            _buildPostList(postsState, tokens),
+          ],
+        ),
+      ),
+      // FAB: create post (only visible when user is a member)
+      floatingActionButton: detailsState.whenOrNull(
+        data: (details) => details.userStatus.isMember
+            ? FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          CreatePostScreen(initialCommunity: details.community),
+                    ),
+                  );
+                },
+                backgroundColor: tokens.brandOrange,
+                child: const Icon(Icons.add, color: Colors.white),
+              )
+            : null,
+      ),
+    );
+  }
+
+  // ─── App Bar ─────────────────────────────────────────────────
+  Widget _buildAppBar(
+    BuildContext context,
+    AsyncValue<CommunityDetailsModel> detailsState,
+    RedditTokens tokens,
+  ) {
+    return SliverAppBar(
+      expandedHeight: 20,
+      pinned: true,
+      backgroundColor: tokens.bgSurface,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: AnimatedOpacity(
+        opacity: _showStickyTitle ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 180),
+        child: Row(
+          children: [
+            // Small avatar in sticky bar
+            detailsState.whenOrNull(
+                  data: (details) {
+                    final community = details.community;
+                    if (community == null) return null;
+                    return CircleAvatar(
+                      radius: 14,
+                      backgroundColor: tokens.brandOrange,
+                      backgroundImage: community.imageUrl != null
+                          ? NetworkImage(community.imageUrl!)
+                          : null,
+                      child: community.imageUrl == null
+                          ? Text(
+                              community.name[0].toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
+                    );
+                  },
+                ) ??
+                const SizedBox.shrink(),
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Text(
+                'r/${widget.communityId}',
                 style: context.rTypo.titleMedium,
+                overflow: TextOverflow.ellipsis,
               ),
-              centerTitle: true,
             ),
-
-            // Community Header (Banner, Icon, Name, Join Button)
-            _buildCommunityHeader(feedState),
-
-            // Feed Posts
-            _buildFeedContent(feedState),
+          ],
+        ),
+      ),
+      // actions: [
+      //   // Edit action visible in the sticky bar for moderators
+      //   detailsState.whenOrNull(
+      //         data: (details) {
+      //           if (!details.userStatus.isAdmin) return null;
+      //           return IconButton(
+      //             icon: Icon(Icons.edit_outlined, color: tokens.textPrimary),
+      //             tooltip: 'Edit community',
+      //             onPressed: details.community != null
+      //                 ? () => _openEditSheet(details.community!)
+      //                 : null,
+      //           );
+      //         },
+      //       ) ??
+      //       const SizedBox.shrink(),
+      //   IconButton(
+      //     icon: Icon(Icons.share_outlined, color: tokens.textPrimary),
+      //     onPressed: () {},
+      //   ),
+      //   IconButton(
+      //     icon: Icon(Icons.more_horiz, color: tokens.textPrimary),
+      //     onPressed: () {},
+      //   ),
+      // ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            detailsState.when(
+              data: (details) => details.community?.bannerUrl != null
+                  ? Image.network(
+                      details.community!.bannerUrl!,
+                      fit: BoxFit.cover,
+                    )
+                  : _defaultBanner(tokens),
+              loading: () => _defaultBanner(tokens),
+              error: (_, __) => _defaultBanner(tokens),
+            ),
+            // Gradient overlay so back button stays legible
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black.withOpacity(0.45), Colors.transparent],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCommunityHeader(FeedState feedState) {
-    // Try to find the community model in the state
-    final community = feedState.communities?.firstWhere(
-      (c) => c.name == widget.communityName,
-      orElse: () => CommunityModel.empty(name: widget.communityName),
+  Widget _defaultBanner(RedditTokens tokens) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [tokens.brandOrangeDark, tokens.brandOrange],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
     );
-
-    if (community == null)
-      return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-    return SliverToBoxAdapter(child: CommunityHeader(community: community));
   }
 
-  Widget _buildFeedContent(FeedState feedState) {
-    if (feedState.isLoading && feedState.isFirstLoad) {
-      return SliverList(
+  // ─── Community Header ─────────────────────────────────────────
+  Widget _buildHeader(AsyncValue<CommunityDetailsModel> detailsState) {
+    return detailsState.when(
+      data: (details) =>
+          SliverToBoxAdapter(child: CommunityHeader(details: details)),
+      loading: () => const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.md),
+          child: SkeletonLoader(height: 160),
+        ),
+      ),
+      error: (err, _) => SliverToBoxAdapter(
+        child: ErrorWidgetCustom(
+          message: 'Failed to load community: $err',
+          onRetry: _fetchData,
+        ),
+      ),
+    );
+  }
+
+  // // ─── Sort Bar ─────────────────────────────────────────────────
+  // Widget _buildSortBar(RedditTokens tokens) {
+  //   return SliverPersistentHeader(
+  //     pinned: true,
+  //     delegate: _SortBarDelegate(tokens: tokens),
+  //   );
+  // }
+
+  // ─── Post List ────────────────────────────────────────────────
+  Widget _buildPostList(
+    AsyncValue<List<FeedPostModel>> postsState,
+    RedditTokens tokens,
+  ) {
+    return postsState.when(
+      data: (posts) {
+        if (posts.isEmpty) return _emptyState(tokens);
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final post = posts[index];
+            final isOwn =
+                post.authorId == Supabase.instance.client.auth.currentUser?.id;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: FeedPostCard(
+                post: post,
+                onTap: () => _navigateToPost(post.id),
+                onUpvote: () => ref
+                    .read(fetchCommunityPostsProvider.notifier)
+                    .votePost(
+                      postId: post.id,
+                      value: 1,
+                      authorId: post.authorId,
+                    ),
+                onDownvote: () => ref
+                    .read(fetchCommunityPostsProvider.notifier)
+                    .votePost(
+                      postId: post.id,
+                      value: -1,
+                      authorId: post.authorId,
+                    ),
+                onComment: () => _navigateToPost(post.id),
+                onDelete: isOwn ? () => _handleDelete(post.id) : null,
+              ),
+            );
+          }, childCount: posts.length),
+        );
+      },
+      loading: () => SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, index) => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 4),
+          (_, __) => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 0),
             child: SkeletonLoader(height: 200),
           ),
           childCount: 3,
         ),
-      );
-    }
-
-    if (feedState.error != null && (feedState.feed?.isEmpty ?? true)) {
-      return SliverFillRemaining(
+      ),
+      error: (err, _) => SliverFillRemaining(
         hasScrollBody: false,
         child: ErrorWidgetCustom(
-          message: 'Failed to load community feed: ${feedState.error}',
-          onRetry: _refreshFeed,
+          message: 'Failed to load posts: $err',
+          onRetry: _fetchData,
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    final posts = feedState.feed ?? [];
-    if (posts.isEmpty && !feedState.isLoading) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: Center(
+  Widget _emptyState(RedditTokens tokens) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xxxl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.post_add, size: 64, color: context.tokens.textMuted),
-              const SizedBox(height: AppSpacing.md),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: tokens.bgElevated,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.article_outlined,
+                  size: 40,
+                  color: tokens.textMuted,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
               Text('No posts yet', style: context.rTypo.titleMedium),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.sm),
               Text(
-                'Be the first to post in r/${widget.communityName}!',
+                'Be the first to post in r/${widget.communityId}!',
                 style: context.rTypo.bodyMedium.copyWith(
-                  color: context.tokens.textSecondary,
+                  color: tokens.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              OutlinedButton.icon(
+                onPressed: () {
+                  // TODO: navigate to create post
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create Post'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: tokens.brandOrange,
+                  side: BorderSide(color: tokens.brandOrange),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      );
-    }
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        if (index == posts.length) {
-          return feedState.isLoadMore
-              ? _buildLoadingMore()
-              : const SizedBox(height: 100);
-        }
-
-        final post = posts[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: FeedPostCard(
-            post: post,
-            onTap: () => _navigateToPostDetails(post.id),
-            onUpvote: () => _handleVote(post, 1),
-            onDownvote: () => _handleVote(post, -1),
-            onComment: () => _navigateToPostDetails(post.id),
-            onDelete:
-                post.authorId == Supabase.instance.client.auth.currentUser?.id
-                ? () => _handleDeletePost(post.id)
-                : null,
-          ),
-        );
-      }, childCount: posts.length + 1),
-    );
-  }
-
-  Widget _buildLoadingMore() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-      child: Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(context.tokens.brandOrange),
-        ),
       ),
     );
   }
 }
+
+// // ─── Sort Bar Delegate ────────────────────────────────────────
+// class _SortBarDelegate extends SliverPersistentHeaderDelegate {
+//   final RedditTokens tokens;
+
+//   _SortBarDelegate({required this.tokens});
+
+//   @override
+//   double get minExtent => 48;
+//   @override
+//   double get maxExtent => 48;
+
+//   @override
+//   Widget build(
+//     BuildContext context,
+//     double shrinkOffset,
+//     bool overlapsContent,
+//   ) {
+//     return Container(
+//       color: tokens.bgCanvas,
+//       child: Row(
+//         children: [
+//           const SizedBox(width: AppSpacing.lg),
+//           _SortChip(
+//             label: 'Hot',
+//             icon: Icons.local_fire_department,
+//             selected: true,
+//             tokens: tokens,
+//           ),
+//           const SizedBox(width: AppSpacing.sm),
+//           _SortChip(
+//             label: 'New',
+//             icon: Icons.fiber_new_outlined,
+//             selected: false,
+//             tokens: tokens,
+//           ),
+//           const SizedBox(width: AppSpacing.sm),
+//           _SortChip(
+//             label: 'Top',
+//             icon: Icons.bar_chart,
+//             selected: false,
+//             tokens: tokens,
+//           ),
+//           const Spacer(),
+//           IconButton(
+//             icon: Icon(Icons.tune, size: 20, color: tokens.textSecondary),
+//             onPressed: () {},
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   @override
+//   bool shouldRebuild(_SortBarDelegate oldDelegate) => false;
+// }

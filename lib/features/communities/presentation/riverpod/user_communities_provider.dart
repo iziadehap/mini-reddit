@@ -12,7 +12,9 @@ final userCommunitiesProvider =
       AsyncValue<List<UserCommunityModel>>
     >((ref) {
       return UserCommunitiesNotifier(
-        communitiesRepo: CommunitiesRepoImpl(CommunitiesDataSource()),
+        communitiesRepo: CommunitiesRepoImpl(
+          communitiesDataSource: CommunitiesDataSource(),
+        ),
       );
     });
 

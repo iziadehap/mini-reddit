@@ -28,6 +28,24 @@ class CommunitiesDataSource {
     }
   }
 
+  // الحصول على بيانات مجتمع واحد بالمعرف
+  Future<CommunityDetailsModel?> getCommunityDetails(String communityId) async {
+    try {
+      final data = await _supabase.rpc(
+        'get_community_details',
+        params: {
+          'p_community_id': communityId,
+          'p_current_user_id': _supabase.auth.currentUser?.id,
+        },
+      );
+
+      return CommunityDetailsModel.fromJson(data);
+    } catch (e) {
+      print('Error getting community by id: $e');
+      return null;
+    }
+  }
+
   // الحصول على مجتمعات المستخدم
   Future<List<UserCommunityModel>> getUserCommunities({
     required String userId,
@@ -166,7 +184,7 @@ class CommunitiesDataSource {
   //   try {
   //     final userId = _supabase.auth.currentUser?.id;
   //     if (userId == null) throw Exception('User not authenticated');
-
+  //
   //     final response = await _supabase.rpc(
   //       'create_post',
   //       params: {
@@ -181,11 +199,11 @@ class CommunitiesDataSource {
   //           'p_image_urls': imageUrls,
   //       },
   //     );
-
+  //
   //     final Map<String, dynamic> responseMap = Map<String, dynamic>.from(
   //       response,
   //     );
-
+  //
   //     if (responseMap['success'] == true) {
   //       // Fetch the newly created post details to return a FeedPostModel
   //       // Since create_post only returns {success, message, post_id}
@@ -194,7 +212,7 @@ class CommunitiesDataSource {
   //         'get_post_details',
   //         params: {'p_post_id': postId, 'p_current_user_id': userId},
   //       );
-
+  //
   //       if (postDetails is List && postDetails.isNotEmpty) {
   //         return FeedPostModel.fromJson(
   //           postDetails.first as Map<String, dynamic>,
@@ -209,7 +227,7 @@ class CommunitiesDataSource {
   //     throw Exception('Failed to create post: $e');
   //   }
   // }
-
+  //
   // إضافة منشور موجود إلى مجتمع (مشاركة)
   Future<FeedPostModel> addPostToCommunity({
     required String originalPostId,
@@ -335,5 +353,38 @@ class CommunitiesDataSource {
       print('Error getting community posts: $e');
       throw Exception('Failed to fetch community posts: $e');
     }
+  }
+
+  Future<SuccessModel> editCommunity({
+    required String communityId,
+    String? name,
+    String? description,
+    String? imageUrl,
+    String? bannerUrl,
+  }) async {
+    final currentUserId = _supabase.auth.currentUser?.id;
+
+    if (currentUserId == null) {
+      return SuccessModel(success: false, message: 'User not authenticated');
+    }
+
+    final response = await _supabase.rpc(
+      'edit_community',
+      params: {
+        'p_community_id': communityId,
+        'p_user_id': currentUserId,
+        'p_name': name,
+        'p_description': description,
+        'p_image_url': imageUrl,
+        'p_banner_url': bannerUrl,
+      },
+    );
+    if (response['success'] == false) {
+      throw Exception(response['message']);
+    }
+    return SuccessModel(
+      success: response['success'] as bool,
+      message: response['message'] as String,
+    );
   }
 }

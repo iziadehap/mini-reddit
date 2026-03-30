@@ -217,7 +217,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CommunityScreen(communityName: communityName),
+              builder: (context) => CommunityScreen(communityId: communityName),
             ),
           );
         },

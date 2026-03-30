@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import 'package:mini_reddit_v2/core/models/failure_model.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/domain/communities_repo.dart';
@@ -8,8 +7,8 @@ import 'package:mini_reddit_v2/features/communities/domain/communities_repo.dart
 class CommunitiesRepoImpl implements CommunitiesRepo {
   final CommunitiesDataSource _communitiesDataSource;
 
-  CommunitiesRepoImpl(this._communitiesDataSource);
-
+  CommunitiesRepoImpl({required CommunitiesDataSource communitiesDataSource})
+    : _communitiesDataSource = communitiesDataSource;
 
   // Community Management Implementation
   @override
@@ -24,6 +23,18 @@ class CommunitiesRepoImpl implements CommunitiesRepo {
         offset: offset,
         search: search,
       );
+      return Right(res);
+    } catch (e) {
+      return Left(Failure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, CommunityDetailsModel?>> getCommunityDetails(
+    String communityId,
+  ) async {
+    try {
+      final res = await _communitiesDataSource.getCommunityDetails(communityId);
       return Right(res);
     } catch (e) {
       return Left(Failure(e.toString()));
@@ -92,60 +103,6 @@ class CommunitiesRepoImpl implements CommunitiesRepo {
     }
   }
 
-  // @override
-  // Future<Either<Failure, FeedPostModel>> createPostInCommunity({
-  //   required String communityId,
-  //   required String title,
-  //   required String content,
-  //   String postType = 'text',
-  //   String? linkUrl,
-  //   String? flairId,
-  //   List<String>? imageUrls,
-  // }) async {
-  //   try {
-  //     final res = await _communitiesDataSource.createPostInCommunity(
-  //       communityId: communityId,
-  //       title: title,
-  //       content: content,
-  //       postType: postType,
-  //       linkUrl: linkUrl,
-  //       flairId: flairId,
-  //       imageUrls: imageUrls,
-  //     );
-  //     return Right(res);
-  //   } catch (e) {
-  //     return Left(Failure(e.toString()));
-  //   }
-  // }
-
-  // @override
-  // Future<Either<Failure, FeedPostModel>> addPostToCommunity({
-  //   required String originalPostId,
-  //   required String targetCommunityId,
-  //   String? additionalContent,
-  // }) async {
-  //   try {
-  //     final res = await _communitiesDataSource.addPostToCommunity(
-  //       originalPostId: originalPostId,
-  //       targetCommunityId: targetCommunityId,
-  //       additionalContent: additionalContent,
-  //     );
-  //     return Right(res);
-  //   } catch (e) {
-  //     return Left(Failure(e.toString()));
-  //   }
-  // }
-
-  // @override
-  // Future<Either<Failure, void>> removePostFromCommunity(String postId) async {
-  //   try {
-  //     await _communitiesDataSource.removePostFromCommunity(postId);
-  //     return const Right(null);
-  //   } catch (e) {
-  //     return Left(Failure(e.toString()));
-  //   }
-  // }
-
   @override
   Future<Either<Failure, List<FeedPostModel>>> getCommunityPosts({
     required String communityId,
@@ -169,6 +126,38 @@ class CommunitiesRepoImpl implements CommunitiesRepo {
     try {
       final res = await _communitiesDataSource.uploadCommunityImage(file);
       return Right(res);
+    } catch (e) {
+      return Left(Failure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SuccessModel>> editCommunity({
+    required String communityId,
+    required String name,
+    String? description,
+    String? imageUrl,
+    String? bannerUrl,
+  }) async {
+    try {
+      final res = await _communitiesDataSource.editCommunity(
+        communityId: communityId,
+        name: name,
+        description: description,
+        imageUrl: imageUrl,
+        bannerUrl: bannerUrl,
+      );
+      return Right(res);
+    } catch (e) {
+      return Left(Failure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removePostFromCommunity(String postId) async {
+    try {
+      await _communitiesDataSource.removePostFromCommunity(postId);
+      return const Right(null);
     } catch (e) {
       return Left(Failure(e.toString()));
     }

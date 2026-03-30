@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/screens/community_screen.dart';
 
 class FeedPostCard extends StatelessWidget {
   final FeedPostModel post;
@@ -614,7 +615,12 @@ class FeedPostCard extends StatelessWidget {
   }
 
   void _goToCommunity(BuildContext context, String communityId) {
-    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CommunityScreen(communityId: communityId),
+      ),
+    );
   }
   void _goToProfile(BuildContext context) {}
 }

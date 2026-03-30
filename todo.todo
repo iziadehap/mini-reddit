@@ -1,6 +1,40 @@
 // what i need to do in this project
-copy form feed to community all think about community
+//copy form feed to community all think about community
 
 
+========= fun need to import ========
+
+ //on tap community open community page
+add save post 
+notification screen 
+show posts , user community , 
+
+// anther will do this  
+edit community
+on tap user open user profile page
+add search screen 
+
+
+
+========= fix ========
+
+ //fix ui and get detils data for community
+remove what i dont need from feed state
+fix error in add post ( image or url ) , and try to make url show 
+fix login error 
+
+
+
+
+
+========= ui need change ========
+
+post image handel more than one image
+colors in profile screen 
+remove edit in setting icon 
+
+
+=================================
+// after all check this 
 
 check todos ( important )

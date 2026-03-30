@@ -6,7 +6,7 @@ import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_repo_impl.dart';
 import 'package:mini_reddit_v2/features/communities/domain/communities_repo.dart';
-import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fatch_communities_provider.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_communities_provider.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/user_communities_provider.dart';
 
 final communitiesActionsProvider =
@@ -16,7 +16,7 @@ final communitiesActionsProvider =
     >((ref) {
       return CommunitiesActionsNotifier(
         ref: ref,
-        communitiesRepo: CommunitiesRepoImpl(CommunitiesDataSource()),
+        communitiesRepo: CommunitiesRepoImpl(communitiesDataSource: CommunitiesDataSource()),
       );
     });
 
@@ -78,8 +78,14 @@ class CommunitiesActionsNotifier
   }
 
   Future<void> removePost(String postId) async {
-    // todo make this work
-    print('remove post $postId');
+    final result = await communitiesRepo.removePostFromCommunity(postId);
+    result.fold(
+      (failure) => setError(failure.message),
+      (_) {
+        // Post removal is usually followed by a refresh in the screen list
+        print('Post $postId removed successfully');
+      },
+    );
   }
 
   // Future<void> createCommunityPost({
