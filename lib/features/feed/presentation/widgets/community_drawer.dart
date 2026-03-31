@@ -307,7 +307,7 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
       ),
 
       data: (communities) {
-        print("communities: ${communities.length}");
+        debugPrint("communities: ${communities.length}");
         // final communities = communitiesAsync.value ?? [];
         if (communities.isEmpty) {
           return _buildEmptyCommunities();

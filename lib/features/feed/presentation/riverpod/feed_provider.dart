@@ -159,7 +159,7 @@ class FeedNotifier extends StateNotifier<FeedState> {
 
     result.fold(
       (failure) {
-        print("failure.message ${failure.message}");
+        debugPrint("failure.message ${failure.message}");
         state = state.copyWith(
           isLoading: false,
           isFirstLoad: false,

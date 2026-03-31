@@ -25,8 +25,8 @@ class FeedDataSource {
   ) async {
     final data = await _supabase.rpc(rpcName, params: params);
 
-    // print('📡 Fetching $rpcName with params: $params');
-    // print('📦 $rpcName response: $data');
+    // debugPrint('📡 Fetching $rpcName with params: $params');
+    // debugPrint('📦 $rpcName response: $data');
 
     return (data as List)
         .map((e) => FeedPostModel.fromJson(e as Map<String, dynamic>))

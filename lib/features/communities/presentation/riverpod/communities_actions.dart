@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
@@ -16,7 +17,9 @@ final communitiesActionsProvider =
     >((ref) {
       return CommunitiesActionsNotifier(
         ref: ref,
-        communitiesRepo: CommunitiesRepoImpl(communitiesDataSource: CommunitiesDataSource()),
+        communitiesRepo: CommunitiesRepoImpl(
+          communitiesDataSource: CommunitiesDataSource(),
+        ),
       );
     });
 
@@ -79,13 +82,10 @@ class CommunitiesActionsNotifier
 
   Future<void> removePost(String postId) async {
     final result = await communitiesRepo.removePostFromCommunity(postId);
-    result.fold(
-      (failure) => setError(failure.message),
-      (_) {
-        // Post removal is usually followed by a refresh in the screen list
-        print('Post $postId removed successfully');
-      },
-    );
+    result.fold((failure) => setError(failure.message), (_) {
+      // Post removal is usually followed by a refresh in the screen list
+      debugPrint('Post $postId removed successfully');
+    });
   }
 
   // Future<void> createCommunityPost({

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mini_reddit_v2/core/services/chash.dart';
+import 'package:mini_reddit_v2/core/services/cash.dart';
 import 'package:mini_reddit_v2/core/services/supabase_services.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/theme/theme_provider.dart';

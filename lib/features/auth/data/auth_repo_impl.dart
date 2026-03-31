@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/utils/auth_error_handler.dart';
 import 'package:mini_reddit_v2/features/auth/data/auth_dataSources.dart';
 import 'package:mini_reddit_v2/features/auth/domain/auth_repo.dart';

@@ -29,7 +29,7 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       color: theme.cardColor,

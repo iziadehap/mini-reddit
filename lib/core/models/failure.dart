@@ -14,20 +14,20 @@ class Failure {
 
 class ServerFailure extends Failure {
   ServerFailure({required String message, String? statusCode, String? code})
-      : super(message, statusCode: statusCode, code: code);
+    : super(message, statusCode: statusCode, code: code);
 }
 
 class AuthFailure extends Failure {
   AuthFailure({required String message, String? statusCode, String? code})
-      : super(message, statusCode: statusCode, code: code);
+    : super(message, statusCode: statusCode, code: code);
 }
 
 class NetworkFailure extends Failure {
   NetworkFailure({required String message, String? statusCode, String? code})
-      : super(message, statusCode: statusCode, code: code);
+    : super(message, statusCode: statusCode, code: code);
 }
 
 class CacheFailure extends Failure {
   CacheFailure({required String message, String? statusCode, String? code})
-      : super(message, statusCode: statusCode, code: code);
+    : super(message, statusCode: statusCode, code: code);
 }

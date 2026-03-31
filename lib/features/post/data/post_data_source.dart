@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -93,7 +94,7 @@ class PostDataSource {
         throw Exception(responseMap['message']);
       }
     } catch (e) {
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       throw Exception('Failed to create post: $e');
     }
   }
@@ -107,7 +108,7 @@ class PostDataSource {
       params: {'p_post_id': postId, 'p_current_user_id': userId},
     );
 
-    print('post details data from data source: $response');
+    debugPrint('post details data from data source: $response');
 
     // Check if response is a list and has items
     if (response is List && response.isNotEmpty) {
@@ -131,7 +132,7 @@ class PostDataSource {
       },
     );
 
-    // print('Vote comment response: $response');
+    // debugPrint('Vote comment response: $response');
     return response;
   }
 
@@ -163,7 +164,7 @@ class PostDataSource {
         if (parentId != null) 'p_parent_id': parentId,
       },
     );
-    print('Add comment response: $res');
+    debugPrint('Add comment response: $res');
   }
 
   Future<List<String>> uploadPostImage(List<File> imageFiles) async {
@@ -188,7 +189,7 @@ class PostDataSource {
       final List<String> imageUrls = await Future.wait(uploadTasks);
       return imageUrls;
     } catch (e) {
-      print('Error uploading image: $e');
+      debugPrint('Error uploading image: $e');
       return [];
     }
   }
@@ -208,10 +209,10 @@ class PostDataSource {
           .eq('id', commentId)
           .eq('user_id', userId)
           .select();
-      print('Delete response: $response');
+      debugPrint('Delete response: $response');
       return response;
     } catch (e) {
-      print('Error deleting comment: $e');
+      debugPrint('Error deleting comment: $e');
       rethrow;
     }
   }

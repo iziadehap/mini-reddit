@@ -10,11 +10,10 @@
  //add save post . last stop , i need to back when get feed (is_saved) == i will start with this 
 
 
-
+notification 
 save postes in cash
 save dark mode or light mode in cash 
 serach if we can add shere post 
-notification screen 
 
 // anther will do this  
 edit community
@@ -26,6 +25,9 @@ add search screen
 ========= fix ========
 
  //fix ui and get detils data for community
+check mark as read in notification screen 
+fix uplode profile image in create prifile 
+fix user posts error 
 remove what i dont need from feed state
 fix error in add post ( image or url ) , and try to make url show 
 fix login error 
@@ -38,8 +40,8 @@ fix login error
 
  //fix ui for user post and comments
  //colors in profile screen 
+ //remove edit in setting icon 
 post image handel more than one image
-remove edit in setting icon 
 
 
 =================================

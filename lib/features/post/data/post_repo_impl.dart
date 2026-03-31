@@ -102,10 +102,10 @@ class PostRepoImpl implements PostRepo {
         postId: postId,
         userId: userId,
       );
-      print('post details data from repo: $data');
+      debugPrint('post details data from repo: $data');
       return Right(data);
     } catch (e) {
-      print('error in get post details: $e');
+      debugPrint('error in get post details: $e');
       return Left(Failure(e.toString()));
     }
   }
@@ -122,14 +122,14 @@ class PostRepoImpl implements PostRepo {
         commentId: commentId,
         value: value,
       );
-      print('vote comment response: $res');
+      debugPrint('vote comment response: $res');
       if (res['success'] == false) {
-        print('its return failure');
+        debugPrint('its return failure');
         return Left(Failure(res['message']));
       }
       return Right(SuccessModel(success: true, data: res));
     } catch (e) {
-      print('error in vote comment: $e');
+      debugPrint('error in vote comment: $e');
       return Left(Failure(e.toString()));
     }
   }
@@ -146,14 +146,14 @@ class PostRepoImpl implements PostRepo {
         postId: postId,
         value: value,
       );
-      print('vote post response: $res');
+      debugPrint('vote post response: $res');
       if (res['success'] == false) {
-        print('its return failure');
+        debugPrint('its return failure');
         return Left(Failure(res['message']));
       }
       return Right(SuccessModel(success: true, data: res));
     } catch (e) {
-      print('error in vote post: $e');
+      debugPrint('error in vote post: $e');
       return Left(Failure(e.toString()));
     }
   }
@@ -168,9 +168,9 @@ class PostRepoImpl implements PostRepo {
         commentId: commentId,
         userId: userId,
       );
-      print('delete comment response: $res');
+      debugPrint('delete comment response: $res');
       if (res['success'] == false) {
-        print('its return failure');
+        debugPrint('its return failure');
         return Left(Failure(res['message']));
       }
       return Right(SuccessModel(success: true));

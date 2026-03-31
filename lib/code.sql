@@ -1004,6 +1004,38 @@ BEGIN
 END;
 $$;
 
+-- Mark all notifications as read
+CREATE OR REPLACE FUNCTION public.mark_all_as_read(p_user_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE public.notifications 
+    SET is_read = true 
+    WHERE user_id = p_user_id AND is_read = false;
+    
+    RETURN jsonb_build_object('success', true, 'updated', true);
+END;
+$$;
+
+-- Remove notification
+CREATE OR REPLACE FUNCTION public.remove_notification(
+    p_notification_id uuid,
+    p_user_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    DELETE FROM public.notifications 
+    WHERE id = p_notification_id AND user_id = p_user_id;
+    
+    RETURN jsonb_build_object('success', true, 'deleted', true);
+END;
+$$;
+
 -- 5.13 Get Notifications
 CREATE OR REPLACE FUNCTION public.get_notifications(
     p_user_id uuid,

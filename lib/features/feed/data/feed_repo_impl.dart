@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/enum.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/feed/data/DataSource/feed_data_source.dart';
 import 'package:mini_reddit_v2/features/feed/domain/feed_repo.dart';
@@ -10,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedRepoImpl implements FeedRepo {
   final FeedDataSource _dataSource;
+  // ignore: unused_field
   final CommunitiesDataSource _communitiesDataSource;
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -125,7 +124,7 @@ class FeedRepoImpl implements FeedRepo {
       );
       return Right(posts);
     } catch (e) {
-      print('error when get popular feed: $e');
+      debugPrint('error when get popular feed: $e');
       return Left(Failure(e.toString()));
     }
   }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -23,7 +24,7 @@ class CommunitiesDataSource {
           .map((e) => CommunityModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting communities: $e');
+      debugPrint('Error getting communities: $e');
       return [];
     }
   }
@@ -41,7 +42,7 @@ class CommunitiesDataSource {
 
       return CommunityDetailsModel.fromJson(data);
     } catch (e) {
-      print('Error getting community by id: $e');
+      debugPrint('Error getting community by id: $e');
       return null;
     }
   }
@@ -60,12 +61,12 @@ class CommunitiesDataSource {
       };
 
       final data = await _supabase.rpc('get_user_communities', params: params);
-      // print('User communities data: $data');
+      // debugPrint('User communities data: $data');
       return (data as List)
           .map((e) => UserCommunityModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting user communities: $e');
+      debugPrint('Error getting user communities: $e');
       return [];
     }
   }
@@ -92,10 +93,10 @@ class CommunitiesDataSource {
         },
       );
       // todo : dont return map return community model
-      print('Community created successfully: $response');
+      debugPrint('Community created successfully: $response');
       return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error creating community: $e');
+      debugPrint('Error creating community: $e');
       return {'success': false, 'message': 'Failed to create community: $e'};
     }
   }
@@ -112,7 +113,7 @@ class CommunitiesDataSource {
       );
       return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error joining community: $e');
+      debugPrint('Error joining community: $e');
       return {'success': false, 'message': 'Failed to join community: $e'};
     }
   }
@@ -129,7 +130,7 @@ class CommunitiesDataSource {
       );
       return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error leaving community: $e');
+      debugPrint('Error leaving community: $e');
       return {'success': false, 'message': 'Failed to leave community: $e'};
     }
   }
@@ -147,7 +148,7 @@ class CommunitiesDataSource {
 
       return _supabase.storage.from('community_images').getPublicUrl(path);
     } catch (e) {
-      print('Error uploading community icon: $e');
+      debugPrint('Error uploading community icon: $e');
       rethrow;
     }
   }
@@ -155,8 +156,8 @@ class CommunitiesDataSource {
   // البحث عن المجتمعات
   Future<List<CommunityModel>> searchCommunities(String query) async {
     final data = await getCommunities(search: query, limit: 20);
-    print('Searching for communities: $query');
-    print('Communities data: $data');
+    debugPrint('Searching for communities: $query');
+    debugPrint('Communities data: $data');
     return data;
   }
 
@@ -166,7 +167,7 @@ class CommunitiesDataSource {
       final communities = await getUserCommunities(userId: userId);
       return communities.any((c) => c.id == communityId);
     } catch (e) {
-      print('Error checking membership: $e');
+      debugPrint('Error checking membership: $e');
       return false;
     }
   }
@@ -223,7 +224,7 @@ class CommunitiesDataSource {
   //       throw Exception(responseMap['message']);
   //     }
   //   } catch (e) {
-  //     print('Error creating post: $e');
+  //     debugPrint('Error creating post: $e');
   //     throw Exception('Failed to create post: $e');
   //   }
   // }
@@ -288,6 +289,8 @@ class CommunitiesDataSource {
   }
 
   // حذف منشور من مجتمع (حذف ناعم)
+
+  // todo : use fuction to delete post
   Future<void> removePostFromCommunity(String postId) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -350,7 +353,7 @@ class CommunitiesDataSource {
           )
           .toList();
     } catch (e) {
-      print('Error getting community posts: $e');
+      debugPrint('Error getting community posts: $e');
       throw Exception('Failed to fetch community posts: $e');
     }
   }

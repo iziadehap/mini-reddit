@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/services/chash.dart';
+import 'package:mini_reddit_v2/core/services/cash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileDataSource {

@@ -443,7 +443,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                                 onUpvote: isVoting
                                     ? null
                                     : () {
-                                        print(
+                                        debugPrint(
                                           'upvote - score ${comment.score}',
                                         );
                                         ref
@@ -456,7 +456,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                                 onDownvote: isVoting
                                     ? null
                                     : () {
-                                        print(
+                                        debugPrint(
                                           'downvote - score ${comment.score}',
                                         );
                                         ref
@@ -628,7 +628,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
     if (confirm == true) {
       // TODO: Implement delete comment
       ref.read(postProvider.notifier).deleteComment(commentId);
-      print('Delete comment: $commentId');
+      debugPrint('Delete comment: $commentId');
     }
   }
 }
