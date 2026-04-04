@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
 
 class CreateCommunityScreen extends ConsumerStatefulWidget {
@@ -285,15 +286,22 @@ class _TopBar extends StatelessWidget {
           ),
           // Title
           Expanded(
-            child: Text(
-              'Create Community',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(AssetsUtils.emojiLaughing, width: 18, height: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Create Community',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
             ),
           ),
           // Create button

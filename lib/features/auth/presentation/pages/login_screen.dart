@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/core/widgets/main_navigation_layout.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/complete_profile_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
+
 import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -52,7 +54,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             content: Text(next.errorMessage!),
             backgroundColor: colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
         return; // Don't fall through to navigation checks
@@ -106,17 +110,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.reddit, size: 48, color: Colors.white),
+                    child: const Icon(
+                      Icons.reddit,
+                      size: 48,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),
                 Center(
-                  child: Text(
-                    'Welcome back',
-                    style: textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(AssetsUtils.emojiWink, width: 28, height: 28),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Welcome back',
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -249,11 +264,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: authState.isLoading
                         ? null
                         : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
-                              ),
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
                             ),
+                          ),
                     child: RichText(
                       text: TextSpan(
                         text: "Don't have an account? ",
@@ -314,7 +329,11 @@ InputDecoration _inputDecoration(
   return InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
-    prefixIcon: Icon(icon, size: 20, color: colorScheme.onSurface.withOpacity(0.45)),
+    prefixIcon: Icon(
+      icon,
+      size: 20,
+      color: colorScheme.onSurface.withOpacity(0.45),
+    ),
     suffixIcon: suffix,
     filled: true,
     fillColor: colorScheme.onSurface.withOpacity(0.05),

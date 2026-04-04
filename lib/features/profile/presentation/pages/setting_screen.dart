@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/theme/theme_provider.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -159,16 +160,51 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
+    String emoji;
+    switch (title) {
+      case 'Appearance':
+        emoji = AssetsUtils.emojiCalmSmile;
+        break;
+      case 'Notifications':
+        emoji = AssetsUtils.emojiPlayfulTongue;
+        break;
+      case 'Privacy':
+        emoji = AssetsUtils.emojiNervous;
+        break;
+      case 'Support':
+        emoji = AssetsUtils.emojiSillyWink;
+        break;
+      default:
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface,
+              letterSpacing: 0.5,
+            ),
+          ),
+        );
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurface,
-          letterSpacing: 0.5,
-        ),
+      child: Row(
+        children: [
+          Image.asset(emoji, width: 16, height: 16),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

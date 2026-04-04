@@ -83,18 +83,4 @@ class NotificationDataSource {
       return left(ServerFailure(message: e.toString()));
     }
   }
-
-  Future<Either<Failure, SuccessModel>> removeAllNotifications() async {
-    try {
-      await _supabase.rpc(
-        'remove_all_notifications',
-        params: {'p_user_id': _supabase.auth.currentUser!.id},
-      );
-      return right(
-        SuccessModel(message: 'All notifications removed', success: true),
-      );
-    } catch (e) {
-      return left(ServerFailure(message: e.toString()));
-    }
-  }
 }

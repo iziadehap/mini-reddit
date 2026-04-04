@@ -16,17 +16,33 @@ final notificationsProvider =
 class NotificationsProvider
     extends StateNotifier<AsyncValue<List<NotificationModel>>> {
   final NotificationImpl _notificationImpl;
+
+  // Keep track of removed items for undo functionality
+  final Map<String, NotificationModel> _removedCache = {};
+
+  // Pagination state
+  int _currentOffset = 0;
+  static const int _limit = 20;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
+
   NotificationsProvider(this._notificationImpl)
     : super(const AsyncValue.loading()) {
     getNotification();
   }
 
+  // Getters for pagination
+  bool get hasMore => _hasMore;
+  bool get isLoadingMore => _isLoadingMore;
+
   void getNotification() async {
+    _currentOffset = 0;
+    _hasMore = true;
     setLoading();
 
     final data = await _notificationImpl.getNotifications(
       p_offset: 0,
-      p_limit: 10,
+      p_limit: _limit,
     );
 
     data.fold(
@@ -34,25 +50,65 @@ class NotificationsProvider
         setError(failure.message);
       },
       (success) {
+        _hasMore = success.length >= _limit;
         setSuccess(success);
       },
     );
   }
 
+  Future<void> loadMoreNotifications() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    final currentData = state.value ?? [];
+    _isLoadingMore = true;
+
+    // Notify listeners about loading state without clearing data
+    state = AsyncValue.data(currentData);
+
+    final data = await _notificationImpl.getNotifications(
+      p_offset: _currentOffset + _limit,
+      p_limit: _limit,
+    );
+
+    _isLoadingMore = false;
+
+    data.fold(
+      (failure) {
+        // Keep existing data on error, just show error state
+        state = AsyncValue.data(currentData);
+      },
+      (success) {
+        _currentOffset += _limit;
+        _hasMore = success.length >= _limit;
+        setSuccess([...currentData, ...success]);
+      },
+    );
+  }
+
+  Future<void> refresh() async {
+    _removedCache.clear();
+    getNotification();
+  }
+
   void markAllAsRead() async {
     final currentNotifications = state.value ?? [];
+
+    // Optimistic update
+    final optimisticUpdate = currentNotifications
+        .map((n) => n.copyWith(isRead: true))
+        .toList();
+    setSuccess(optimisticUpdate);
 
     final result = await _notificationImpl.markAllAsRead();
 
     result.fold(
       (failure) {
+        // Revert on failure
+        setSuccess(currentNotifications);
         setError(failure.message);
       },
       (success) {
-        final updatedNotifications = currentNotifications
-            .map((notification) => notification.copyWith(isRead: true))
-            .toList();
-        setSuccess(updatedNotifications);
+        // Already updated optimistically
       },
     );
   }
@@ -60,27 +116,41 @@ class NotificationsProvider
   void markAsRead(String id) async {
     final currentNotifications = state.value ?? [];
 
+    // Optimistic update
+    final optimisticUpdate = currentNotifications
+        .map((n) => n.id == id ? n.copyWith(isRead: true) : n)
+        .toList();
+    setSuccess(optimisticUpdate);
+
     final result = await _notificationImpl.markAsRead(notificationId: id);
 
     result.fold(
       (failure) {
+        // Revert on failure
+        setSuccess(currentNotifications);
         setError(failure.message);
       },
       (success) {
-        final updatedNotifications = currentNotifications
-            .map(
-              (notification) => notification.id == id
-                  ? notification.copyWith(isRead: true)
-                  : notification,
-            )
-            .toList();
-        setSuccess(updatedNotifications);
+        // Already updated
       },
     );
   }
 
   void removeNotification(String id) async {
     final currentNotifications = state.value ?? [];
+    final notificationToRemove = currentNotifications.firstWhere(
+      (n) => n.id == id,
+      orElse: () => throw Exception('Notification not found'),
+    );
+
+    // Cache for undo
+    _removedCache[id] = notificationToRemove;
+
+    // Optimistic update
+    final optimisticUpdate = currentNotifications
+        .where((n) => n.id != id)
+        .toList();
+    setSuccess(optimisticUpdate);
 
     final result = await _notificationImpl.removeNotification(
       notificationId: id,
@@ -88,38 +158,54 @@ class NotificationsProvider
 
     result.fold(
       (failure) {
+        // Revert on failure
+        _removedCache.remove(id);
+        setSuccess(currentNotifications);
         setError(failure.message);
       },
       (success) {
-        final updatedNotifications = currentNotifications
-            .where((notification) => notification.id != id)
-            .toList();
-        setSuccess(updatedNotifications);
+        // Keep in cache for undo duration (optional: auto-clear after delay)
       },
     );
   }
 
-  void removeAllNotifications() async {
-    final result = await _notificationImpl.removeAllNotifications();
+  // void removeAllNotifications() async {
+  //   final currentNotifications = state.value ?? [];
 
-    result.fold(
-      (failure) {
-        setError(failure.message);
-      },
-      (success) {
-        setSuccess([]);
-      },
-    );
-  }
+  //   // Optimistic update
+  //   setSuccess([]);
+
+  //   final result = await _notificationImpl.removeAllNotifications();
+
+  //   result.fold(
+  //     (failure) {
+  //       // Revert on failure
+  //       setSuccess(currentNotifications);
+  //       setError(failure.message);
+  //     },
+  //     (success) {
+  //       _removedCache.clear();
+  //     },
+  //   );
+  // }
 
   void undoRemove(String id) {
-    getNotification();
+    final removedNotification = _removedCache.remove(id);
+    if (removedNotification == null) return;
+
+    final currentNotifications = state.value ?? [];
+
+    // Insert back at original position or append
+    final updatedList = [...currentNotifications, removedNotification];
+    // Sort by date to maintain order
+    updatedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    setSuccess(updatedList);
   }
 
-  // helper
-
+  // Helper methods
   void setLoading() {
-    state = AsyncValue.loading();
+    state = const AsyncValue.loading();
   }
 
   void setError(String error) {

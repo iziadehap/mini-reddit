@@ -59,9 +59,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   void openSavePostScreen(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SavePostScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const SavePostScreen()),
     );
   }
 
@@ -865,10 +863,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 class _StatItem {
   final String value;
   final String label;
-  const _StatItem({
-    required this.value,
-    required this.label,
-  });
+  const _StatItem({required this.value, required this.label});
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

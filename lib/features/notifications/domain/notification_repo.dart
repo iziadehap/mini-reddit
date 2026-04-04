@@ -18,6 +18,4 @@ abstract class NotificationRepo {
   Future<Either<Failure, SuccessModel>> removeNotification({
     required String notificationId,
   });
-
-  Future<Either<Failure, SuccessModel>> removeAllNotifications();
 }

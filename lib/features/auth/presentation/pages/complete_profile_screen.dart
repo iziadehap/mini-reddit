@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/core/utils/image_utils.dart';
 import 'package:mini_reddit_v2/core/widgets/main_navigation_layout.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
@@ -13,8 +15,7 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
       _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState
-    extends ConsumerState<CompleteProfileScreen> {
+class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   final _fullNameController = TextEditingController();
   final _bioController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -38,12 +39,13 @@ class _CompleteProfileScreenState
   Future<void> _saveProfile() async {
     String? imageUrl;
     if (_imageFile != null) {
-      imageUrl =
-          await ref.read(authProvider.notifier).uploadImage(_imageFile!);
+      imageUrl = await ref.read(authProvider.notifier).uploadImage(_imageFile!);
       if (imageUrl == null) return; // Error handled by notifier
     }
 
-    await ref.read(authProvider.notifier).completeProfile(
+    await ref
+        .read(authProvider.notifier)
+        .completeProfile(
           fullName: _fullNameController.text.trim(),
           bio: _bioController.text.trim(),
           username: _usernameController.text.trim(),
@@ -66,8 +68,7 @@ class _CompleteProfileScreenState
       if (next.isCompleteProfile && !(previous?.isCompleteProfile ?? false)) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-              builder: (context) => const MainNavigationLayout()),
+          MaterialPageRoute(builder: (context) => const MainNavigationLayout()),
           (route) => false,
         );
         return;
@@ -80,8 +81,9 @@ class _CompleteProfileScreenState
             content: Text(next.errorMessage!),
             backgroundColor: colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -105,13 +107,20 @@ class _CompleteProfileScreenState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 12),
-                Text(
-                  'Tell us about yourself',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                  ),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(AssetsUtils.emojiHappy, width: 24, height: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tell us about yourself',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -297,8 +306,11 @@ InputDecoration _inputDecoration(
   return InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
-    prefixIcon:
-        Icon(icon, size: 20, color: colorScheme.onSurface.withOpacity(0.45)),
+    prefixIcon: Icon(
+      icon,
+      size: 20,
+      color: colorScheme.onSurface.withOpacity(0.45),
+    ),
     suffixIcon: suffix,
     filled: true,
     fillColor: colorScheme.onSurface.withOpacity(0.05),

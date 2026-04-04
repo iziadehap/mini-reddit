@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/services/supabase_services.dart';
+import 'package:mini_reddit_v2/core/models/user_devices.dart';
 import 'package:mini_reddit_v2/features/auth/data/auth_dataSources.dart';
 import 'package:mini_reddit_v2/features/auth/data/auth_repo_impl.dart';
 import 'package:mini_reddit_v2/features/auth/domain/auth_repo.dart';
@@ -82,11 +83,15 @@ class AuthNotifier extends Notifier<AuthState> {
           isLoading: false,
           errorMessage: failure.message,
         ),
-        (success) => state = state.copyWith(
-          isLoading: false,
-          isSignInSuccess: true,
-          userProfileModel: success,
-        ),
+        (success) async {
+          state = state.copyWith(
+            isLoading: false,
+            isSignInSuccess: true,
+            userProfileModel: success,
+          );
+          // Setup push notifications after successful sign in
+          await setupPushNotifications();
+        },
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -174,6 +179,63 @@ class AuthNotifier extends Notifier<AuthState> {
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    }
+  }
+
+  // Push notification methods
+  Future<void> setupPushNotifications() async {
+    try {
+      final result = await authRepo.setupPushNotifications();
+      result.fold(
+        (failure) => state = state.copyWith(errorMessage: failure.message),
+        (success) => null,
+      );
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+    }
+  }
+
+  Future<Map<String, dynamic>?> registerDevice({
+    required String fcmToken,
+    required String platform,
+  }) async {
+    try {
+      final result = await authRepo.registerDevice(
+        fcmToken: fcmToken,
+        platform: platform,
+      );
+      return result.fold((failure) {
+        state = state.copyWith(errorMessage: failure.message);
+        return null;
+      }, (deviceData) => deviceData);
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      return null;
+    }
+  }
+
+  Future<void> unregisterDevice({required String fcmToken}) async {
+    try {
+      final result = await authRepo.unregisterDevice(fcmToken: fcmToken);
+      result.fold(
+        (failure) => state = state.copyWith(errorMessage: failure.message),
+        (success) => null,
+      );
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+    }
+  }
+
+  Future<List<UserDevice>?> getUserDevices() async {
+    try {
+      final result = await authRepo.getUserDevices();
+      return result.fold((failure) {
+        state = state.copyWith(errorMessage: failure.message);
+        return null;
+      }, (devices) => devices);
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      return null;
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/complete_profile_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
 
@@ -57,7 +58,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             content: Text(next.errorMessage!),
             backgroundColor: colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -68,8 +71,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              size: 20, color: colorScheme.onSurface),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -81,11 +87,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 16),
-                Text(
-                  'Create account',
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        AssetsUtils.emojiLaughing,
+                        width: 28,
+                        height: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Create account',
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -139,9 +158,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // ── Password hint ──────────────────────────────────────────
                 Row(
                   children: [
-                    Icon(Icons.info_outline_rounded,
-                        size: 14,
-                        color: colorScheme.onSurface.withOpacity(0.4)),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 14,
+                      color: colorScheme.onSurface.withOpacity(0.4),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'At least 8 characters',
@@ -187,8 +208,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // ── Login Link ─────────────────────────────────────────────
                 Center(
                   child: TextButton(
-                    onPressed:
-                        authState.isLoading ? null : () => Navigator.pop(context),
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => Navigator.pop(context),
                     child: RichText(
                       text: TextSpan(
                         text: 'Already have an account? ',
@@ -249,8 +271,11 @@ InputDecoration _inputDecoration(
   return InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
-    prefixIcon:
-        Icon(icon, size: 20, color: colorScheme.onSurface.withOpacity(0.45)),
+    prefixIcon: Icon(
+      icon,
+      size: 20,
+      color: colorScheme.onSurface.withOpacity(0.45),
+    ),
     suffixIcon: suffix,
     filled: true,
     fillColor: colorScheme.onSurface.withOpacity(0.05),

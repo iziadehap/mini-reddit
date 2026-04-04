@@ -1,6 +1,7 @@
 // lib/features/feed/presentation/widgets/empty_feed_widget.dart
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 
 class EmptyFeedWidget extends StatelessWidget {
   final VoidCallback onFindCommunities;
@@ -71,14 +72,21 @@ class EmptyFeedWidget extends StatelessWidget {
   }
 
   Widget _buildTitle() {
-    return const Text(
-      'Your feed is empty',
-      style: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.5,
-      ),
-      textAlign: TextAlign.center,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(AssetsUtils.emojiCrying, width: 32, height: 32),
+        const SizedBox(width: 12),
+        const Text(
+          'Your feed is empty',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 

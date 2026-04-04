@@ -49,8 +49,4 @@ class NotificationImpl implements NotificationRepo {
     return _notificationDataSource.removeNotification(notificationId);
   }
 
-  @override
-  Future<Either<Failure, SuccessModel>> removeAllNotifications() {
-    return _notificationDataSource.removeAllNotifications();
-  }
 }
