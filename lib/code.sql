@@ -725,6 +725,222 @@ BEGIN
     RETURN jsonb_build_object('success', true, 'message', 'Community created', 'community_id', v_community_id);
 END;
 $$;
+CREATE OR REPLACE FUNCTION public.get_community_details(
+    p_community_id uuid,
+    p_current_user_id uuid DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_community jsonb;
+    v_admins jsonb;
+    v_stats jsonb;
+    v_user_status jsonb;
+BEGIN
+    -- 1. Community data
+    SELECT jsonb_build_object(
+        'id', c.id,
+        'name', c.name,
+        'description', c.description,
+        'image_url', c.image_url,
+        'banner_url', c.banner_url,
+        'created_at', c.created_at,
+        'created_by', c.created_by
+    ) INTO v_community
+    FROM public.communities c
+    WHERE c.id = p_community_id;
+    
+    IF v_community IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Community not found');
+    END IF;
+    
+    -- 2. Admins only (no online status)
+    SELECT jsonb_agg(
+        jsonb_build_object(
+            'id', p.id,
+            'username', p.username,
+            'avatar_url', p.avatar_url,
+            'role', cm.role
+        ) ORDER BY cm.joined_at
+    ) INTO v_admins
+    FROM public.community_members cm
+    JOIN public.profiles p ON cm.user_id = p.id
+    WHERE cm.community_id = p_community_id AND cm.role = 'admin';
+    
+    -- 3. Stats (members + posts only)
+    SELECT jsonb_build_object(
+        'members_count', (SELECT COUNT(*) FROM public.community_members WHERE community_id = p_community_id),
+        'posts_count', (SELECT COUNT(*) FROM public.posts WHERE community_id = p_community_id AND is_deleted = false)
+    ) INTO v_stats;
+    
+    -- 4. User status
+    SELECT jsonb_build_object(
+        'is_member', EXISTS(SELECT 1 FROM public.community_members WHERE community_id = p_community_id AND user_id = p_current_user_id),
+        'is_admin', EXISTS(SELECT 1 FROM public.community_members WHERE community_id = p_community_id AND user_id = p_current_user_id AND role = 'admin'),
+        'joined_at', (SELECT joined_at FROM public.community_members WHERE community_id = p_community_id AND user_id = p_current_user_id)
+    ) INTO v_user_status;
+    
+    RETURN jsonb_build_object(
+        'success', true,
+        'community', v_community,
+        'admins', COALESCE(v_admins, '[]'::jsonb),
+        'stats', v_stats,
+        'user_status', COALESCE(v_user_status, '{"is_member": false, "is_admin": false}'::jsonb)
+    );
+END;
+$$;
+
+
+-- ============================================
+-- GET COMMUNITY POSTS (NEW FUNCTION)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.get_community_posts(
+    p_community_id uuid,
+    p_limit integer DEFAULT 20,
+    p_offset integer DEFAULT 0,
+    p_sort_by text DEFAULT 'hot', -- 'hot', 'new', 'top'
+    p_user_id uuid DEFAULT NULL
+)
+RETURNS TABLE (
+    id uuid,
+    author_id uuid,
+    author_username text,
+    author_avatar_url text,
+    title text,
+    content text,
+    link_url text,
+    post_type text,
+    score integer,
+    comments_count integer,
+    created_at timestamptz,
+    user_vote smallint,
+    images jsonb,
+    flair_name text,
+    flair_color text
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        p.id,
+        p.user_id AS author_id,
+        pr.username AS author_username,
+        pr.avatar_url AS author_avatar_url,
+        p.title,
+        p.content,
+        p.link_url,
+        p.post_type,
+        p.score,
+        p.comments_count,
+        p.created_at,
+        (SELECT v.value FROM public.post_votes v WHERE v.post_id = p.id AND v.user_id = p_user_id LIMIT 1) AS user_vote,
+        (SELECT jsonb_agg(
+            jsonb_build_object('id', pi.id, 'url', pi.image_url)
+            ORDER BY pi.position
+         ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
+        f.name AS flair_name,
+        f.color AS flair_color
+    FROM public.posts p
+    LEFT JOIN public.profiles pr ON p.user_id = pr.id
+    LEFT JOIN public.flairs f ON p.flair_id = f.id
+    WHERE p.community_id = p_community_id AND p.is_deleted = false
+    ORDER BY 
+        CASE 
+            WHEN p_sort_by = 'hot' THEN 
+                p.score::double precision / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 + 2, 2.0), 1.5)
+            WHEN p_sort_by = 'top' THEN p.score::double precision
+            ELSE EXTRACT(EPOCH FROM p.created_at)
+        END DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+$$;
+
+-- ============================================
+-- EDIT COMMUNITY (ADMIN ONLY)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.edit_community(
+    p_community_id uuid,
+    p_user_id uuid,
+    p_name text DEFAULT NULL,
+    p_description text DEFAULT NULL,
+    p_image_url text DEFAULT NULL,
+    p_banner_url text DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_is_admin boolean;
+    v_current_name text;
+    v_new_name text;
+BEGIN
+    -- 1. التحقق إن اليوزر أدمن في الكوميونيتي
+    SELECT role = 'admin' INTO v_is_admin
+    FROM public.community_members
+    WHERE community_id = p_community_id AND user_id = p_user_id;
+    
+    IF NOT FOUND OR NOT v_is_admin THEN
+        RETURN jsonb_build_object(
+            'success', false, 
+            'message', 'Unauthorized: Only admins can edit community'
+        );
+    END IF;
+    
+    -- 2. التحقق من الاسم الجديد لو متغير
+    IF p_name IS NOT NULL THEN
+        SELECT name INTO v_current_name 
+        FROM public.communities 
+        WHERE id = p_community_id;
+        
+        -- لو الاسم اتغير، نتأكد مفيش كوميونيتي تانية بنفس الاسم
+        IF p_name != v_current_name THEN
+            IF EXISTS (SELECT 1 FROM public.communities WHERE name = p_name AND id != p_community_id) THEN
+                RETURN jsonb_build_object(
+                    'success', false, 
+                    'message', 'Community name already exists'
+                );
+            END IF;
+            
+            -- التحقق من طول الاسم
+            IF LENGTH(TRIM(p_name)) < 3 THEN
+                RETURN jsonb_build_object(
+                    'success', false, 
+                    'message', 'Community name must be at least 3 characters'
+                );
+            END IF;
+            
+            v_new_name := TRIM(p_name);
+        END IF;
+    END IF;
+    
+    -- 3. تنفيذ التحديث
+    UPDATE public.communities
+    SET 
+        name = COALESCE(v_new_name, name),
+        description = COALESCE(p_description, description),
+        image_url = COALESCE(p_image_url, image_url),
+        banner_url = COALESCE(p_banner_url, banner_url),
+        updated_at = now()
+    WHERE id = p_community_id;
+    
+    RETURN jsonb_build_object(
+        'success', true,
+        'message', 'Community updated successfully'
+    );
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'message', SQLERRM
+        );
+END;
+$$;
 
 -- 5.10 Join Community
 CREATE OR REPLACE FUNCTION public.join_community(

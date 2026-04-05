@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import 'package:mini_reddit_v2/core/models/failure_model.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/success_model.dart';
+import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/models/models.dart';
 
 abstract class PostRepo {
   Future<Either<Failure, FeedPostModel>> createPost({

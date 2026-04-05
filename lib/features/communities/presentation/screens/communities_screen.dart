@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
-import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fatch_communities_provider.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_communities_provider.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/screens/community_screen.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/screens/create_community.dart';
 
@@ -34,7 +34,6 @@ class _CommunitiesScreenState extends ConsumerState<CommunitiesScreen> {
   }
 
   void _onSearchChanged(String query) {
-    
     ref
         .read(fetchCommunitiesProvider.notifier)
         .fetchCommunities(search: query.isNotEmpty ? query : null);
@@ -110,10 +109,18 @@ class _CommunitiesScreenState extends ConsumerState<CommunitiesScreen> {
           decoration: InputDecoration(
             hintText: 'Search communities...',
             hintStyle: TextStyle(color: tokens.textMuted, fontSize: 14),
-            prefixIcon: Icon(Icons.search, size: 20, color: tokens.textSecondary),
+            prefixIcon: Icon(
+              Icons.search,
+              size: 20,
+              color: tokens.textSecondary,
+            ),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
-                    icon: Icon(Icons.clear, size: 18, color: tokens.textSecondary),
+                    icon: Icon(
+                      Icons.clear,
+                      size: 18,
+                      color: tokens.textSecondary,
+                    ),
                     onPressed: _clearSearch,
                   )
                 : null,
@@ -316,10 +323,7 @@ class _CommunitiesScreenState extends ConsumerState<CommunitiesScreen> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: tokens.bgElevated,
-        border: Border.all(
-          color: tokens.borderDefault,
-          width: 0.8,
-        ),
+        border: Border.all(color: tokens.borderDefault, width: 0.8),
       ),
       child: ClipOval(
         child: community.imageUrl != null && community.imageUrl!.isNotEmpty
@@ -445,7 +449,7 @@ class _CommunitiesScreenState extends ConsumerState<CommunitiesScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CommunityScreen(communityName: communityName),
+        builder: (context) => CommunityScreen(communityId: communityName),
       ),
     );
   }
