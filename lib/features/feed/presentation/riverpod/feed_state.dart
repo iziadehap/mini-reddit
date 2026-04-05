@@ -57,9 +57,10 @@ class FeedState {
     bool? isCommunitiesLoading,
     String? communitiesError,
     bool clearSelectedCommunityName = false,
+    bool clearFeed = false,
   }) {
     return FeedState(
-      feed: feed ?? this.feed,
+      feed: clearFeed ? [] : (feed ?? this.feed),
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       isFirstLoad: isFirstLoad ?? this.isFirstLoad,
@@ -80,18 +81,18 @@ class FeedState {
   }
 
   factory FeedState.initial() => FeedState(
-    feed: [],
-    isLoading: false,
-    error: null,
-    isFirstLoad: true,
-    isLoadMore: false,
-    isEnd: false,
-    feedType: FeedType.popular,
-    timeframe: TopFeedTimeframe.day,
-    selectedCommunityName: null,
-    communities: [],
-    userCommunities: [],
-    isCommunitiesLoading: false,
-    communitiesError: null,
-  );
+        feed: [],
+        isLoading: false,
+        error: null,
+        isFirstLoad: true,
+        isLoadMore: false,
+        isEnd: false,
+        feedType: FeedType.popular,
+        timeframe: TopFeedTimeframe.day,
+        selectedCommunityName: null,
+        communities: [],
+        userCommunities: [],
+        isCommunitiesLoading: false,
+        communitiesError: null,
+      );
 }
