@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/vote_button.dart';
 import 'package:mini_reddit_v2/features/post/presentation/providers/post_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -104,21 +105,23 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
   }
 
   Widget _buildEmptyState() {
-    return const Padding(
-      padding: EdgeInsets.all(24.0),
+    final t = context.tokens;
+    final typo = context.rTypo;
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.comment_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 8),
+            Icon(Icons.comment_outlined, size: 48, color: t.textMuted),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'No comments yet',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+              style: typo.titleSmall.copyWith(color: t.textSecondary),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Be the first to comment!',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: typo.bodySmall.copyWith(color: t.textMuted),
             ),
           ],
         ),
@@ -128,71 +131,73 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
 
   Widget _buildReplyInputField() {
     final postState = ref.watch(postProvider);
+    final t = context.tokens;
+    final typo = context.rTypo;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
+        color: t.bgElevated,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: t.borderFocused),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.reply, size: 16, color: Colors.blue),
-              const SizedBox(width: 8),
+              Icon(Icons.reply, size: 16, color: t.brandOrange),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   'Replying to @$_replyingToUsername',
-                  style: TextStyle(
-                    color: Colors.blue[700],
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
-                  ),
+                  style: typo.labelMedium.copyWith(color: t.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, size: 18),
+                icon: Icon(Icons.close, size: 18, color: t.textSecondary),
                 onPressed: _cancelReply,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _replyController,
                   focusNode: _replyFocusNode,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Write your reply...',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
-                    hintStyle: TextStyle(fontSize: 14),
+                    hintStyle: typo.bodyMedium.copyWith(color: t.textMuted),
                   ),
-                  style: const TextStyle(fontSize: 14),
+                  style: typo.bodyMedium.copyWith(color: t.textPrimary),
                   onSubmitted: (_) => _submitReply(postState.post!.id),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               postState.isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: t.brandOrange,
+                      ),
                     )
                   : IconButton(
-                      icon: const Icon(
-                        Icons.send,
-                        color: Colors.blue,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.send, color: t.brandOrange, size: 20),
                       onPressed: () => _submitReply(postState.post!.id),
                     ),
             ],
@@ -233,32 +238,35 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                 // زر عرض المزيد من الردود
                 if (hasMoreReplies)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4, bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xs,
+                    ),
                     child: Row(
                       children: [
                         Container(
                           width: 2,
                           height: 20,
-                          color: Colors.grey[300],
-                          margin: const EdgeInsets.only(right: 8),
+                          color: context.tokens.divider,
+                          margin: const EdgeInsets.only(right: AppSpacing.sm),
                         ),
                         TextButton.icon(
                           onPressed: () => _toggleShowReplies(comment.id),
                           icon: Icon(
                             Icons.expand_more,
                             size: 16,
-                            color: Colors.blue[600],
+                            color: context.tokens.brandOrange,
                           ),
                           label: Text(
                             'Show ${comment.replies.length - 2} more ${comment.replies.length - 2 == 1 ? 'reply' : 'replies'}',
-                            style: TextStyle(
-                              color: Colors.blue[600],
+                            style: context.rTypo.labelMedium.copyWith(
+                              color: context.tokens.brandOrange,
                               fontSize: 12,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                            ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -267,34 +275,37 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                     ),
                   ),
 
-                // زر إخفاء الردود (إذا كنا بنعرض الكل)
                 if (showAll && comment.replies.length > 2)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4, bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xs,
+                    ),
                     child: Row(
                       children: [
                         Container(
                           width: 2,
                           height: 20,
-                          color: Colors.grey[300],
-                          margin: const EdgeInsets.only(right: 8),
+                          color: context.tokens.divider,
+                          margin: const EdgeInsets.only(right: AppSpacing.sm),
                         ),
                         TextButton.icon(
                           onPressed: () => _toggleShowReplies(comment.id),
                           icon: Icon(
                             Icons.expand_less,
                             size: 16,
-                            color: Colors.grey[600],
+                            color: context.tokens.textSecondary,
                           ),
                           label: Text(
                             'Hide replies',
-                            style: TextStyle(
-                              color: Colors.grey[600],
+                            style: context.rTypo.labelMedium.copyWith(
+                              color: context.tokens.textSecondary,
                               fontSize: 12,
                             ),
                           ),
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                            ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -311,26 +322,27 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
 
   Widget _buildCommentItem(CommentModel comment, int depth) {
     final String currentUserId = Supabase.instance.client.auth.currentUser!.id;
-    final bool isReply = depth > 0; // تحديد إذا كان هذا رد
+    final bool isReply = depth > 0;
+    final t = context.tokens;
+    final typo = context.rTypo;
 
     return Container(
       margin: EdgeInsets.only(
-        left: depth > 0 ? 8.0 : 16.0,
-        right: 16.0,
-        top: 4.0,
-        bottom: 4.0,
+        left: depth > 0 ? AppSpacing.sm : AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.xs,
+        bottom: AppSpacing.xs,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // الخط الجانبي للردود
           if (isReply)
             Container(
               width: 2,
               height: 40,
-              margin: const EdgeInsets.only(right: 8),
+              margin: const EdgeInsets.only(right: AppSpacing.sm),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: t.divider,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -338,80 +350,82 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: isReply ? Colors.grey[50] : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: isReply ? t.bgElevated : t.cardBg,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: t.cardBorder, width: 0.8),
               ),
               child: Padding(
-                padding: EdgeInsets.all(isReply ? 10 : 12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // معلومات الكاتب
                     Row(
                       children: [
                         CircleAvatar(
                           radius: isReply ? 14 : 16,
+                          backgroundColor: t.bgInput,
                           backgroundImage: comment.authorAvatarUrl != null
                               ? NetworkImage(comment.authorAvatarUrl!)
                               : null,
                           child: comment.authorAvatarUrl == null
                               ? Text(
                                   comment.authorUsername[0].toUpperCase(),
-                                  style: TextStyle(fontSize: isReply ? 12 : 14),
+                                  style: typo.labelLarge.copyWith(
+                                    fontSize: isReply ? 12 : 14,
+                                    color: t.textPrimary,
+                                  ),
                                 )
                               : null,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 comment.authorUsername,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isReply ? 13 : 14,
-                                  color: isReply
-                                      ? Colors.grey[800]
-                                      : Colors.black,
-                                ),
+                                style:
+                                    (isReply
+                                            ? typo.titleSmall
+                                            : typo.titleMedium)
+                                        .copyWith(
+                                          fontSize: isReply ? 13 : 14,
+                                          color: t.textPrimary,
+                                        ),
                               ),
                               if (isReply) const SizedBox(height: 2),
                               Text(
                                 '@${comment.authorUsername}',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
+                                style: typo.bodySmall.copyWith(
+                                  color: t.textSecondary,
                                   fontSize: isReply ? 11 : 12,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        // التاريخ
                         Text(
                           _formatDate(comment.createdAt),
-                          style: TextStyle(
-                            color: Colors.grey[500],
+                          style: typo.labelSmall.copyWith(
+                            color: t.textMuted,
                             fontSize: isReply ? 9 : 10,
                           ),
                         ),
                       ],
                     ),
 
-                    SizedBox(height: isReply ? 6 : 8),
+                    SizedBox(height: isReply ? 6 : AppSpacing.sm),
 
-                    // محتوى التعليق
                     Text(
                       comment.content,
-                      style: TextStyle(
+                      style: typo.bodyMedium.copyWith(
                         fontSize: isReply ? 13 : 14,
-                        color: isReply ? Colors.grey[800] : Colors.black,
+                        color: t.textPrimary,
                       ),
                     ),
 
-                    SizedBox(height: isReply ? 6 : 8),
+                    SizedBox(height: isReply ? 6 : AppSpacing.sm),
 
-                    // أزرار التفاعل
                     Row(
                       children: [
                         // زر الإعجاب
@@ -437,7 +451,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
 
                               return CommentVoteButton(
                                 comment: comment,
-                                pillColor: Colors.grey[200]!,
+                                pillColor: t.bgElevated,
                                 isSmall: isReply,
                                 isDisabled: isVoting,
                                 onUpvote: isVoting
@@ -480,13 +494,20 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                             });
                             _replyFocusNode.requestFocus();
                           },
-                          icon: Icon(Icons.reply, size: isReply ? 12 : 14),
+                          icon: Icon(
+                            Icons.reply,
+                            size: isReply ? 12 : 14,
+                            color: t.textSecondary,
+                          ),
                           label: Text(
                             'Reply',
-                            style: TextStyle(fontSize: isReply ? 11 : 12),
+                            style: typo.labelMedium.copyWith(
+                              fontSize: isReply ? 11 : 12,
+                              color: t.textSecondary,
+                            ),
                           ),
                           style: TextButton.styleFrom(
-                            foregroundColor: Colors.grey[600],
+                            foregroundColor: t.textSecondary,
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -495,7 +516,6 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
 
                         const Spacer(),
 
-                        // زر الحذف للمستخدم الحالي
                         if (comment.authorId == currentUserId) ...[
                           IconButton(
                             onPressed: () {
@@ -505,7 +525,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                               Icons.delete_outline,
                               size: isReply ? 14 : 16,
                             ),
-                            color: Colors.red[300],
+                            color: t.error,
                             constraints: const BoxConstraints(),
                             padding: EdgeInsets.zero,
                             visualDensity: VisualDensity.compact,
@@ -514,7 +534,6 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                       ],
                     ),
 
-                    // مؤشر "رد" صغير للتمييز
                     if (isReply)
                       Container(
                         margin: const EdgeInsets.only(top: 6),
@@ -523,13 +542,13 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                             Icon(
                               Icons.subdirectory_arrow_right,
                               size: 12,
-                              color: Colors.grey[400],
+                              color: t.textMuted,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               'Reply',
-                              style: TextStyle(
-                                color: Colors.grey[400],
+                              style: typo.labelSmall.copyWith(
+                                color: t.textMuted,
                                 fontSize: 10,
                                 fontStyle: FontStyle.italic,
                               ),

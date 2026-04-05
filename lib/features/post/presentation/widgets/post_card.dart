@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
+import 'package:mini_reddit_v2/core/widgets/post_images_carousel.dart';
 
 class PostCard extends StatelessWidget {
   final PostDetailsModel post;
@@ -203,103 +204,18 @@ class PostCard extends StatelessWidget {
   }
 
   Widget _buildImageGallery(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final urls = post.images
+        .map((e) => e.imageUrl)
+        .where((u) => u.isNotEmpty)
+        .toList();
+    if (urls.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        children: [
-          if (post.images.length == 1)
-            _buildSingleImage(context, post.images.first)
-          else
-            _buildMultipleImages(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSingleImage(BuildContext context, dynamic image) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        // Open full-screen image viewer
-      },
-      child: Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxHeight: 500),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(0),
-          child: Image.network(
-            image.imageUrl,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 200,
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-              child: Center(
-                child: Icon(
-                  Icons.broken_image,
-                  size: 48,
-                  color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-                ),
-              ),
-            ),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 300,
-                color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                    strokeWidth: 2,
-                    color: RedditConstants.orange,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMultipleImages(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: post.images.length,
-        itemBuilder: (context, index) {
-          final image = post.images[index];
-          return GestureDetector(
-            onTap: () {
-              // Open gallery view
-            },
-            child: Container(
-              width: 200,
-              margin: EdgeInsets.only(
-                left: index == 0 ? 16 : 8,
-                right: index == post.images.length - 1 ? 16 : 0,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  image.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade300,
-                    child: const Icon(Icons.broken_image),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: PostImagesCarousel(
+        imageUrls: urls,
+        aspectRatio: 4 / 3,
+        borderRadius: 12,
       ),
     );
   }
@@ -442,9 +358,6 @@ class PostCard extends StatelessWidget {
 
   // ============= FOOTER SECTION =============
   Widget _buildFooter(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
       child: Row(
@@ -458,12 +371,12 @@ class PostCard extends StatelessWidget {
             onTap: onComment,
           ),
           const SizedBox(width: 12),
-          _buildActionButton(
-            context,
-            icon: Icons.share_outlined,
-            label: 'Share',
-            onTap: onShare ?? () => _showShareSheet(context),
-          ),
+          // _buildActionButton(
+          //   context,
+          //   icon: Icons.share_outlined,
+          //   label: 'Share',
+          //   onTap: onShare ?? () => _showShareSheet(context),
+          // ),
           // const Spacer(),
           // _buildSaveButton(context),
         ],

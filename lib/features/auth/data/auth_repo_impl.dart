@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/models/user_devices.dart';
@@ -129,16 +130,38 @@ class AuthRepoImpl implements AuthRepo {
     required String username,
     String? avatarUrl,
   }) async {
+    debugPrint('🔍 AuthRepo.updateProfile called');
+    debugPrint('🔍 - fullName: $fullName');
+    debugPrint('🔍 - bio: $bio');
+    debugPrint('🔍 - username: $username');
+    debugPrint('🔍 - avatarUrl: $avatarUrl');
+
     try {
+      debugPrint('🔍 Calling AuthDataSource.updateProfile...');
       await _authDataSource.updateProfile(
         username: username,
         fullName: fullName,
         bio: bio,
         avatarUrl: avatarUrl,
       );
+      debugPrint('✅ AuthDataSource.updateProfile completed successfully');
       return const Right(true);
     } catch (e) {
+      debugPrint('❌ Error in AuthRepo.updateProfile: $e');
       return Left(AuthErrorHandler.handle(e, 'Failed to update profile'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUsernameAvailable(String username) async {
+    try {
+      final isAvailable = await _authDataSource.isUsernameAvailable(username);
+      return Right(isAvailable);
+    } catch (e) {
+      debugPrint('❌ Error checking username availability: $e');
+      return Left(
+        AuthErrorHandler.handle(e, 'Failed to check username availability'),
+      );
     }
   }
 

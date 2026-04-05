@@ -21,7 +21,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
   final _contentController = TextEditingController();
   final _titleController = TextEditingController();
   UserCommunityModel? _selectedCommunity;
-  List<File> _selectedImages = [];
+  final List<File> _selectedImages = [];
 
   // Tab: 0 = Text, 1 = Image
   late final TabController _tabController;
@@ -30,6 +30,19 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    final initial = widget.initialCommunity;
+    if (initial != null) {
+      _selectedCommunity = UserCommunityModel(
+        id: initial.id,
+        name: initial.name,
+        description: initial.description,
+        imageUrl: initial.imageUrl,
+        role: 'member',
+        joinedAt: initial.createdAt,
+        postsCount: initial.postsCount,
+        membersCount: initial.membersCount,
+      );
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(userCommunitiesProvider.notifier).fetchUserCommunities();
     });
@@ -56,13 +69,19 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
-    if (title.isEmpty) return _snack('Please enter a title');
-    if (content.isEmpty && _selectedImages.isEmpty)
+    if (title.isEmpty) {
+      return _snack('Please enter a title');
+    }
+    if (content.isEmpty && _selectedImages.isEmpty) {
       return _snack('Please add content or an image');
-    if (_selectedCommunity == null)
+    }
+    if (_selectedCommunity == null) {
       return _snack('Please select a community');
+    }
 
-    ref.read(createPostProvider.notifier).createPost(
+    ref
+        .read(createPostProvider.notifier)
+        .createPost(
           communityId: _selectedCommunity!.id,
           title: title,
           content: content,
@@ -74,15 +93,19 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     final t = context.tokens;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg,
-            style: TextStyle(
-                fontFamily: 'IBMPlexSans',
-                fontSize: 13,
-                color: t.textPrimary)),
+        content: Text(
+          msg,
+          style: TextStyle(
+            fontFamily: 'IBMPlexSans',
+            fontSize: 13,
+            color: t.textPrimary,
+          ),
+        ),
         backgroundColor: t.bgElevated,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md)),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
         margin: const EdgeInsets.all(AppSpacing.lg),
       ),
     );
@@ -100,11 +123,15 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     final typo = context.rTypo;
 
     ref.listen<SnackbarState>(createPostSnackbarProvider, (previous, next) {
-      if (next.message != null) {
-        _snack(next.message!);
-        if (!next.isError && next.message == "Post created successfully") {
-          Navigator.pop(context);
-        }
+      if (next.message == null) return;
+      final msg = next.message!;
+      final isErr = next.isError;
+      ref.read(createPostSnackbarProvider.notifier).state = SnackbarState();
+      _snack(msg);
+      if (!isErr && msg == 'Post created successfully') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) Navigator.pop(context);
+        });
       }
     });
 
@@ -174,8 +201,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
         icon: Icon(Icons.close_rounded, color: t.textPrimary),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Text('Create Post',
-          style: typo.titleMedium.copyWith(color: t.textPrimary)),
+      title: Text(
+        'Create Post',
+        style: typo.titleMedium.copyWith(color: t.textPrimary),
+      ),
       centerTitle: false,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
@@ -190,27 +219,36 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
             child: TextButton(
               onPressed: _canPost ? _handlePost : null,
               style: TextButton.styleFrom(
-                backgroundColor:
-                    _canPost ? t.brandOrange : t.brandOrange.withOpacity(0.3),
-                foregroundColor: Colors.white,
+                backgroundColor: _canPost
+                    ? t.brandOrange
+                    : t.brandOrange.withValues(alpha: 0.3),
+                foregroundColor: t.buttonPrimaryText,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg, vertical: AppSpacing.xs + 2),
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xs + 2,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.full)),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
                 minimumSize: const Size(64, 34),
               ),
               child: isUploading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: t.buttonPrimaryText,
+                      ),
                     )
-                  : const Text('Post',
+                  : const Text(
+                      'Post',
                       style: TextStyle(
-                          fontFamily: 'IBMPlexSans',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                        fontFamily: 'IBMPlexSans',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
             ),
           ),
         ),
@@ -227,8 +265,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
       context: context,
       backgroundColor: t.bgSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (ctx) => Consumer(
         builder: (ctx, ref, _) {
@@ -252,9 +289,15 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.sm),
-                child: Text('Post to',
-                    style: typo.titleLarge.copyWith(color: t.textPrimary)),
+                  AppSpacing.xl,
+                  AppSpacing.lg,
+                  AppSpacing.xl,
+                  AppSpacing.sm,
+                ),
+                child: Text(
+                  'Post to',
+                  style: typo.titleLarge.copyWith(color: t.textPrimary),
+                ),
               ),
               Divider(height: 1, color: t.divider),
 
@@ -266,74 +309,92 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   ),
                 )
               else
-                Flexible(
-                  child: Builder(builder: (_) {
-                    final communities = communitiesAsync.value ?? [];
-                    if (communities.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        child: Text(
-                          "You haven't joined any communities yet.",
-                          style: typo.bodyMedium
-                              .copyWith(color: t.textSecondary),
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: communities.length,
-                      itemBuilder: (_, index) {
-                        final community = communities[index];
-                        final isSelected =
-                            _selectedCommunity?.id == community.id;
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xl,
-                              vertical: AppSpacing.xs),
-                          tileColor: isSelected
-                              ? t.brandOrange.withOpacity(0.08)
-                              : null,
-                          leading: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: t.bgElevated,
-                            // ✅ null-safe: only load image if url is non-null & non-empty
-                            backgroundImage: (community.imageUrl != null &&
-                                    community.imageUrl!.isNotEmpty)
-                                ? CachedNetworkImageProvider(
-                                    community.imageUrl!)
-                                : null,
-                            child: (community.imageUrl == null ||
-                                    community.imageUrl!.isEmpty)
-                                ? Icon(Icons.people_rounded,
-                                    size: 16, color: t.textSecondary)
-                                : null,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(ctx).height * 0.55,
+                  ),
+                  child: Builder(
+                    builder: (_) {
+                      final communities = communitiesAsync.value ?? [];
+                      if (communities.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          child: Text(
+                            "You haven't joined any communities yet.",
+                            style: typo.bodyMedium.copyWith(
+                              color: t.textSecondary,
+                            ),
                           ),
-                          title: Text(
-                            'r/${community.name}',
-                            style: typo.communityName
-                                .copyWith(color: t.textPrimary),
-                          ),
-                          subtitle: Text(
-                            '${community.membersCount} members',
-                            style: typo.postMeta
-                                .copyWith(color: t.textSecondary),
-                          ),
-                          trailing: isSelected
-                              ? Icon(Icons.check_circle_rounded,
-                                  color: t.brandOrange, size: 20)
-                              : null,
-                          onTap: () {
-                            setState(() => _selectedCommunity = community);
-                            Navigator.pop(ctx);
-                          },
                         );
-                      },
-                    );
-                  }),
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: communities.length,
+                        itemBuilder: (_, index) {
+                          final community = communities[index];
+                          final isSelected =
+                              _selectedCommunity?.id == community.id;
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xl,
+                              vertical: AppSpacing.xs,
+                            ),
+                            tileColor: isSelected
+                                ? t.brandOrange.withValues(alpha: 0.08)
+                                : null,
+                            leading: CircleAvatar(
+                              radius: 16,
+                              backgroundColor: t.bgElevated,
+                              // ✅ null-safe: only load image if url is non-null & non-empty
+                              backgroundImage:
+                                  (community.imageUrl != null &&
+                                      community.imageUrl!.isNotEmpty)
+                                  ? CachedNetworkImageProvider(
+                                      community.imageUrl!,
+                                    )
+                                  : null,
+                              child:
+                                  (community.imageUrl == null ||
+                                      community.imageUrl!.isEmpty)
+                                  ? Icon(
+                                      Icons.people_rounded,
+                                      size: 16,
+                                      color: t.textSecondary,
+                                    )
+                                  : null,
+                            ),
+                            title: Text(
+                              'r/${community.name}',
+                              style: typo.communityName.copyWith(
+                                color: t.textPrimary,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${community.membersCount} members',
+                              style: typo.postMeta.copyWith(
+                                color: t.textSecondary,
+                              ),
+                            ),
+                            trailing: isSelected
+                                ? Icon(
+                                    Icons.check_circle_rounded,
+                                    color: t.brandOrange,
+                                    size: 20,
+                                  )
+                                : null,
+                            onTap: () {
+                              setState(() => _selectedCommunity = community);
+                              Navigator.pop(ctx);
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               SizedBox(
-                  height: MediaQuery.of(ctx).padding.bottom +
-                      AppSpacing.md),
+                height: MediaQuery.of(ctx).padding.bottom + AppSpacing.md,
+              ),
             ],
           );
         },
@@ -368,19 +429,23 @@ class _CommunitySelector extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         child: Row(
           children: [
             // Avatar
             CircleAvatar(
               radius: 16,
               backgroundColor: t.bgElevated,
-              backgroundImage: (hasSelection &&
+              backgroundImage:
+                  (hasSelection &&
                       selected!.imageUrl != null &&
                       selected!.imageUrl!.isNotEmpty)
                   ? CachedNetworkImageProvider(selected!.imageUrl!)
                   : null,
-              child: (!hasSelection ||
+              child:
+                  (!hasSelection ||
                       selected!.imageUrl == null ||
                       selected!.imageUrl!.isEmpty)
                   ? Icon(
@@ -401,8 +466,11 @@ class _CommunitySelector extends StatelessWidget {
                     : typo.bodyMedium.copyWith(color: t.brandOrange),
               ),
             ),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                color: t.textSecondary, size: 20),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: t.textSecondary,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -411,8 +479,7 @@ class _CommunitySelector extends StatelessWidget {
 }
 
 class _PostTypeTabs extends StatelessWidget {
-  const _PostTypeTabs(
-      {required this.controller, required this.tokens});
+  const _PostTypeTabs({required this.controller, required this.tokens});
 
   final TabController controller;
   final RedditTokens tokens;
@@ -427,13 +494,15 @@ class _PostTypeTabs extends StatelessWidget {
       labelColor: t.brandOrange,
       unselectedLabelColor: t.textSecondary,
       labelStyle: const TextStyle(
-          fontFamily: 'IBMPlexSans',
-          fontSize: 13,
-          fontWeight: FontWeight.w700),
+        fontFamily: 'IBMPlexSans',
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+      ),
       unselectedLabelStyle: const TextStyle(
-          fontFamily: 'IBMPlexSans',
-          fontSize: 13,
-          fontWeight: FontWeight.w500),
+        fontFamily: 'IBMPlexSans',
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
       tabs: const [
         Tab(icon: Icon(Icons.text_fields_rounded, size: 18), text: 'Text'),
         Tab(icon: Icon(Icons.image_outlined, size: 18), text: 'Image'),
@@ -585,8 +654,11 @@ class _ImagePostBody extends StatelessWidget {
 }
 
 class _AddImageButton extends StatelessWidget {
-  const _AddImageButton(
-      {required this.tokens, required this.typo, required this.onTap});
+  const _AddImageButton({
+    required this.tokens,
+    required this.typo,
+    required this.onTap,
+  });
 
   final RedditTokens tokens;
   final RedditTypography typo;
@@ -604,21 +676,29 @@ class _AddImageButton extends StatelessWidget {
           color: t.bgInput,
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
-              color: t.borderDefault,
-              width: 1.5,
-              strokeAlign: BorderSide.strokeAlignInside),
+            color: t.borderDefault,
+            width: 1.5,
+            strokeAlign: BorderSide.strokeAlignInside,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined,
-                size: 40, color: t.textSecondary),
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              size: 40,
+              color: t.textSecondary,
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Add images',
-                style: typo.labelLarge.copyWith(color: t.textSecondary)),
+            Text(
+              'Add images',
+              style: typo.labelLarge.copyWith(color: t.textSecondary),
+            ),
             const SizedBox(height: AppSpacing.xs),
-            Text('Tap to browse your gallery',
-                style: typo.bodySmall.copyWith(color: t.textMuted)),
+            Text(
+              'Tap to browse your gallery',
+              style: typo.bodySmall.copyWith(color: t.textMuted),
+            ),
           ],
         ),
       ),
@@ -640,8 +720,7 @@ class _AddImageTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: tokens.bgInput,
           borderRadius: BorderRadius.circular(AppRadius.sm),
-          border:
-              Border.all(color: tokens.borderDefault, width: 1.5),
+          border: Border.all(color: tokens.borderDefault, width: 1.5),
         ),
         child: Icon(Icons.add_rounded, color: tokens.textSecondary, size: 32),
       ),
@@ -650,8 +729,11 @@ class _AddImageTile extends StatelessWidget {
 }
 
 class _ImageTile extends StatelessWidget {
-  const _ImageTile(
-      {required this.file, required this.tokens, required this.onRemove});
+  const _ImageTile({
+    required this.file,
+    required this.tokens,
+    required this.onRemove,
+  });
 
   final File file;
   final RedditTokens tokens;
@@ -677,8 +759,11 @@ class _ImageTile extends StatelessWidget {
                 color: Colors.black54,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close_rounded,
-                  size: 14, color: Colors.white),
+              child: const Icon(
+                Icons.close_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -730,8 +815,7 @@ class _BottomToolbar extends StatelessWidget {
             tooltip: 'Add link',
           ),
           const Spacer(),
-          Icon(Icons.keyboard_hide_outlined,
-              color: t.textMuted, size: 20),
+          Icon(Icons.keyboard_hide_outlined, color: t.textMuted, size: 20),
           const SizedBox(width: AppSpacing.sm),
         ],
       ),

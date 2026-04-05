@@ -30,12 +30,23 @@ class ProfileRepoImpl implements ProfileRepo {
     String? fullName,
     String? bio,
     File? avatar,
+    File? banner,
   }) async {
-    // uplode image
+    // upload avatar image
     String? avatarUrl;
     if (avatar != null) {
       try {
         avatarUrl = await dataSource.uploadPostImage(avatar);
+      } catch (e) {
+        return Left(Failure(e.toString()));
+      }
+    }
+
+    // upload banner image
+    String? bannerUrl;
+    if (banner != null) {
+      try {
+        bannerUrl = await dataSource.uploadBannerImage(banner);
       } catch (e) {
         return Left(Failure(e.toString()));
       }
@@ -50,6 +61,7 @@ class ProfileRepoImpl implements ProfileRepo {
           fullName: fullName,
           bio: bio,
           avatarUrl: avatarUrl,
+          bannerUrl: bannerUrl,
         ),
       );
     } catch (e) {

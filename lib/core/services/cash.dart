@@ -5,9 +5,10 @@ enum Key {
   userPost,
   userComment,
   userSavedPost,
+  themeMode,
+
   // userCash,
   // settings,
-  
 }
 
 class CashService {
@@ -33,10 +34,21 @@ class CashService {
   /// Get data with enum key (returns null if none)
   dynamic get(Key key) {
     return _box?.get(key.name);
+    
   }
 
   /// Check if enum key exists
   bool exist(Key key) {
     return _box?.containsKey(key.name) ?? false;
+  }
+
+  // remove all cash
+  Future<void> clear() async {
+    // Print all keys before clearing
+    print('Clearing all cash data:');
+    _box?.keys.forEach((key) {
+      print('  - $key');
+    });
+    await _box?.clear();
   }
 }

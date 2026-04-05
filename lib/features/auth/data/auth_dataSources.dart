@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mini_reddit_v2/core/services/storage_service.dart';
 import 'package:mini_reddit_v2/core/utils/supabase_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -194,19 +195,34 @@ class AuthDataSource {
   // ============================================
 
   Future<String> uploadProfileImage(File image) async {
+    debugPrint('🔍 uploadProfileImage called');
+
     final user = _supabase.auth.currentUser;
     if (user == null) {
+      debugPrint('❌ User is not authenticated');
       throw const AuthException('User is not authenticated');
     }
 
     final fileExtension = image.path.split('.').last;
     final path = '${user.id}/profile.$fileExtension';
 
-    return StorageService().uploadImage(
-      file: image,
-      bucket: SupabaseText.userProfileBuckets,
-      path: path,
-    );
+    debugPrint('🔍 Upload path: $path');
+    debugPrint('🔍 Bucket: ${SupabaseText.userProfileBuckets}');
+    debugPrint('🔍 File exists: ${image.existsSync()}');
+    debugPrint('🔍 File size: ${image.lengthSync()} bytes');
+
+    try {
+      final result = await StorageService().uploadImage(
+        file: image,
+        bucket: SupabaseText.userProfileBuckets,
+        path: path,
+      );
+      debugPrint('✅ Profile image uploaded successfully: $result');
+      return result;
+    } catch (e) {
+      debugPrint('❌ Error uploading profile image: $e');
+      rethrow;
+    }
   }
 
   Future<void> resendOtp(String email) async {
@@ -248,24 +264,58 @@ class AuthDataSource {
     return data;
   }
 
+  Future<bool> isUsernameAvailable(String username) async {
+    debugPrint('🔍 Checking username availability for: $username');
+    try {
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select('username')
+          .eq('username', username.trim())
+          .maybeSingle();
+
+      debugPrint('🔍 Username check result: $response');
+      return response == null; // null means username is available
+    } catch (e) {
+      debugPrint('❌ Error checking username availability: $e');
+      return false; // Assume not available on error
+    }
+  }
+
   Future<void> updateProfile({
     required String fullName,
     required String bio,
     required String username,
     String? avatarUrl,
   }) async {
+    debugPrint('🔍 AuthDataSource.updateProfile called');
+
     final user = _supabase.auth.currentUser;
     if (user == null) {
+      debugPrint('❌ User is not authenticated');
       throw const AuthException('User is not authenticated');
     }
 
-    await _supabase.from('profiles').upsert({
-      'id': user.id,
-      'username': username.trim(),
-      'full_name': fullName.trim(),
-      'bio': bio.trim(),
-      'avatar_url': avatarUrl,
-    });
+    debugPrint('🔍 User authenticated: ${user.id}');
+    debugPrint('🔍 Updating profile with data:');
+    debugPrint('🔍 - id: ${user.id}');
+    debugPrint('🔍 - username: ${username.trim()}');
+    debugPrint('🔍 - full_name: ${fullName.trim()}');
+    debugPrint('🔍 - bio: ${bio.trim()}');
+    debugPrint('🔍 - avatar_url: $avatarUrl');
+
+    try {
+      await _supabase.from('profiles').upsert({
+        'id': user.id,
+        'username': username.trim(),
+        'full_name': fullName.trim(),
+        'bio': bio.trim(),
+        'avatar_url': avatarUrl,
+      });
+      debugPrint('✅ Profile upsert completed successfully');
+    } catch (e) {
+      debugPrint('❌ Error during profile upsert: $e');
+      rethrow;
+    }
   }
 }
 

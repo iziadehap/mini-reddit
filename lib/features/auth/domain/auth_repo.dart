@@ -17,6 +17,8 @@ abstract class AuthRepo {
     String? avatarUrl,
   });
 
+  Future<Either<Failure, bool>> isUsernameAvailable(String username);
+
   Future<Either<Failure, UserProfileModel>> getUserProfile();
   Future<Either<Failure, String>> uploadProfileImage(File image);
   Future<Either<Failure, bool>> signOut();

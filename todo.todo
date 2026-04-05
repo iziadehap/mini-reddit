@@ -8,12 +8,13 @@
  //show posts , user community , 
  //add cash for user post and comments
  //add save post . last stop , i need to back when get feed (is_saved) == i will start with this 
+ //add send opt when i create acc 
 
 
-notification 
-save postes in cash
-save dark mode or light mode in cash 
-serach if we can add shere post 
+ //notification 
+ //save postes in cash
+ //save dark mode or light mode in cash 
+ //serach if we can add shere post 
 
 // anther will do this  
 edit community
@@ -25,12 +26,18 @@ add search screen
 ========= fix ========
 
  //fix ui and get detils data for community
-check mark as read in notification screen 
+ //check mark as read in notification screen
+ //fix empty widget on start app in feed 
+ //handle setting icon 
+ //remove what we dont need in setting 
+ //user can foces refesh user posts , comments
+ //remove what i dont need from feed state
+ //fix login error 
+ //fix user posts error 
+ //fix error in add post ( image or url ) , and try to make url show 
+ //add logOut in settin 
+
 fix uplode profile image in create prifile 
-fix user posts error 
-remove what i dont need from feed state
-fix error in add post ( image or url ) , and try to make url show 
-fix login error 
 
 
 
@@ -41,8 +48,8 @@ fix login error
  //fix ui for user post and comments
  //colors in profile screen 
  //remove edit in setting icon 
-fix comments ui colors
-post image handel more than one image
+ //fix comments ui colors
+ //post image handel more than one image
 
 
 =================================

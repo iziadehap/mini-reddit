@@ -8,6 +8,11 @@ class AuthState {
   final bool isCompleteProfile;
   final UserProfileModel? userProfileModel;
   final bool isInitialAuthChecked;
+  final bool needsEmailVerification;
+  final String? verificationEmail;
+  final bool passwordResetEmailSent;
+  final bool passwordResetOTPVerified;
+  final bool passwordUpdated;
 
   AuthState({
     required this.isLoading,
@@ -17,6 +22,11 @@ class AuthState {
     this.isCompleteProfile = false,
     this.userProfileModel,
     this.isInitialAuthChecked = false,
+    this.needsEmailVerification = false,
+    this.verificationEmail,
+    this.passwordResetEmailSent = false,
+    this.passwordResetOTPVerified = false,
+    this.passwordUpdated = false,
   });
 
   factory AuthState.initial() =>
@@ -32,6 +42,11 @@ class AuthState {
     bool? isInitialAuthChecked,
     bool clearError = false,
     bool clearProfile = false,
+    bool? needsEmailVerification,
+    String? verificationEmail,
+    bool? passwordResetEmailSent,
+    bool? passwordResetOTPVerified,
+    bool? passwordUpdated,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -43,6 +58,14 @@ class AuthState {
           ? null
           : (userProfileModel ?? this.userProfileModel),
       isInitialAuthChecked: isInitialAuthChecked ?? this.isInitialAuthChecked,
+      needsEmailVerification:
+          needsEmailVerification ?? this.needsEmailVerification,
+      verificationEmail: verificationEmail ?? this.verificationEmail,
+      passwordResetEmailSent:
+          passwordResetEmailSent ?? this.passwordResetEmailSent,
+      passwordResetOTPVerified:
+          passwordResetOTPVerified ?? this.passwordResetOTPVerified,
+      passwordUpdated: passwordUpdated ?? this.passwordUpdated,
     );
   }
 }

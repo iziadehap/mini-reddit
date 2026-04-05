@@ -1,9 +1,29 @@
 // theme_provider.dart
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Key;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:mini_reddit_v2/core/services/cash.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
+Future<void> setThemeMode(WidgetRef ref, ThemeMode mode) async {
+  debugPrint('🔥 Setting theme mode to $mode');
+  await saveThemeMode(mode);
+  ref.read(themeModeProvider.notifier).state = mode;
+}
+
+Future<void> saveThemeMode(ThemeMode mode) async {
+  int modeInt = mode.index;
+  debugPrint('🔥 Mode int: $modeInt');
+  await CashService().save(Key.themeMode, modeInt);
+  debugPrint('🔥 Saving theme mode to $modeInt');
+}
+
+Future<ThemeMode> getThemeMode() async {
+  int modeInt = await CashService().get(Key.themeMode);
+  debugPrint('🔥 Mode int: $modeInt');
+  return ThemeMode.values[modeInt];
+}
 // import 'package:flutter/material.dart';
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:shared_preferences/shared_preferences.dart';

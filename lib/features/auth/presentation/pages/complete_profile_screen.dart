@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/core/utils/image_utils.dart';
 import 'package:mini_reddit_v2/core/widgets/main_navigation_layout.dart';
+import 'package:mini_reddit_v2/features/auth/presentation/pages/login_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
 
 class CompleteProfileScreen extends ConsumerStatefulWidget {
@@ -37,11 +38,25 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    debugPrint('🔍 _saveProfile called');
+
     String? imageUrl;
     if (_imageFile != null) {
+      debugPrint('🔍 Uploading profile image...');
       imageUrl = await ref.read(authProvider.notifier).uploadImage(_imageFile!);
-      if (imageUrl == null) return; // Error handled by notifier
+      debugPrint('🔍 Image upload result: $imageUrl');
+
+      if (imageUrl == null) {
+        debugPrint('❌ Image upload failed');
+        return; // Error handled by notifier
+      }
     }
+
+    debugPrint('🔍 Completing profile with data:');
+    debugPrint('🔍 - fullName: ${_fullNameController.text.trim()}');
+    debugPrint('🔍 - bio: ${_bioController.text.trim()}');
+    debugPrint('🔍 - username: ${_usernameController.text.trim()}');
+    debugPrint('🔍 - avatarUrl: $imageUrl');
 
     await ref
         .read(authProvider.notifier)
@@ -51,6 +66,16 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           username: _usernameController.text.trim(),
           avatarUrl: imageUrl,
         );
+  }
+
+  Future<void> _logout() async {
+    await ref.read(authProvider.notifier).signOut();
+    // go to login and remove any previous routes
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   @override
@@ -97,6 +122,12 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           'Complete Profile',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
+        leading: IconButton(
+          icon: Icon(Icons.logout, color: Colors.red),
+          onPressed: () {
+            _logout();
+          },
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -110,7 +141,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(AssetsUtils.emojiHappy, width: 24, height: 24),
+                    Image.asset(AssetsUtils.emojiHappy, width: 50, height: 50),
                     const SizedBox(width: 8),
                     Text(
                       'Tell us about yourself',

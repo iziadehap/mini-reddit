@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
@@ -9,10 +10,12 @@ final postRepositoryProvider = Provider<ProfileRepo>((ref) {
   return ProfileRepoImpl(ProfileDataSource());
 });
 
-final userPostsProvider = StateNotifierProvider.family<
-    UserPostsNotifier,
-    AsyncValue<List<FeedPostModel>>,
-    String>((ref, userId) {
+final userPostsProvider =
+    StateNotifierProvider.family<
+      UserPostsNotifier,
+      AsyncValue<List<FeedPostModel>>,
+      String
+    >((ref, userId) {
       return UserPostsNotifier(ref.read(postRepositoryProvider), userId);
     });
 
@@ -40,10 +43,9 @@ class UserPostsNotifier extends StateNotifier<AsyncValue<List<FeedPostModel>>> {
     }
 
     final result = await _repo.getUserPosts(userId: userId);
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (posts) => state = AsyncValue.data(posts),
-    );
+    result.fold((failure) {
+      debugPrint('🔥 Error fetching user posts: ${failure.message}');
+      return state = AsyncValue.error(failure.message, StackTrace.current);
+    }, (posts) => state = AsyncValue.data(posts));
   }
 }

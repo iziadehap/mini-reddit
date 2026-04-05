@@ -102,13 +102,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             automaticallyImplyLeading: false,
             actions: [
               _iconBtn(Icons.search, () {}),
+
+              _iconBtn(Icons.refresh, () {
+                final userId = profile.id;
+                final tabIndex = _tabController.index;
+                if (tabIndex == 0) {
+                  ref
+                      .read(userPostsProvider(userId).notifier)
+                      .fetchUserPosts(forceRefresh: true);
+                } else if (tabIndex == 1) {
+                  ref
+                      .read(userCommentsProvider(userId).notifier)
+                      .fetchUserComments(forceRefresh: true);
+                }
+              }),
               _iconBtn(Icons.bookmark_border, () {
                 openSavePostScreen(context);
               }),
-              _iconBtn(
-                Icons.settings,
-                () => _showOptionsSheet(context, profile),
-              ),
+              _iconBtn(Icons.settings, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              }),
             ],
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.pin,
@@ -767,58 +783,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // Bottom sheet
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _showOptionsSheet(BuildContext context, UserProfileModel profile) {
-    // final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).colorScheme.onSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: const Text('Edit Profile'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditProfileScreen(profile: profile),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _showOptionsSheet(BuildContext context, UserProfileModel profile) {
+  //   // final isDark = Theme.of(context).brightness == Brightness.dark;
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: Theme.of(context).colorScheme.onSurface,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //     ),
+  //     builder: (_) => SafeArea(
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           const SizedBox(height: 8),
+  //           Container(
+  //             width: 40,
+  //             height: 4,
+  //             decoration: BoxDecoration(
+  //               color: Theme.of(context).colorScheme.onSurface,
+  //               borderRadius: BorderRadius.circular(2),
+  //             ),
+  //           ),
+  //           const SizedBox(height: 8),
+  //           ListTile(
+  //             leading: const Icon(Icons.settings_outlined),
+  //             title: const Text('Settings'),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               Navigator.push(
+  //                 context,
+  //                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
+  //               );
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.edit_outlined),
+  //             title: const Text('Edit Profile'),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               Navigator.push(
+  //                 context,
+  //                 MaterialPageRoute(
+  //                   builder: (_) => EditProfileScreen(profile: profile),
+  //                 ),
+  //               );
+  //             },
+  //           ),
+  //           const SizedBox(height: 8),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // ───────────────────────────────────────────────────────────────────────────
   // Helpers

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/utils/supabase_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CommunitiesDataSource {
@@ -144,9 +145,9 @@ class CommunitiesDataSource {
           '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
       final path = '$userId/$fileName';
 
-      await _supabase.storage.from('community_images').upload(path, file);
+      await _supabase.storage.from(SupabaseText.communityImageBuckets).upload(path, file);
 
-      return _supabase.storage.from('community_images').getPublicUrl(path);
+      return _supabase.storage.from(SupabaseText.communityImageBuckets).getPublicUrl(path);
     } catch (e) {
       debugPrint('Error uploading community icon: $e');
       rethrow;

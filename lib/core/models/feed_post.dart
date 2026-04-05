@@ -71,11 +71,12 @@ class FeedPostModel {
           : 0.0,
       commentsCount: (json['comments_count'] as num?)?.toInt() ?? 0,
       userVote: (json['user_vote'] as num?)?.toInt(),
-      images: (json['images'] as List?)
-          ?.map(
-            (imgJson) => PostImage.fromJson(imgJson as Map<String, dynamic>),
-          )
-          .toList(),
+      images: json['images'] is List
+          ? (json['images'] as List)
+              .whereType<Map>()
+              .map((m) => PostImage.fromJson(Map<String, dynamic>.from(m)))
+              .toList()
+          : null,
       isSaved: json['is_saved'] ?? false,
       communityId: json['community_id']?.toString() ?? '',
       communityName: json['community_name']?.toString() ?? '',

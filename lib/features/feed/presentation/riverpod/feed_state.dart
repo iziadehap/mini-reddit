@@ -1,5 +1,4 @@
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/enum.dart';
 
 class FeedState {
   final List<FeedPostModel>? feed;
@@ -15,12 +14,7 @@ class FeedState {
   final String? searchQuery;
   final String? targetUserId;
 
-  // Community-related state
   final String? selectedCommunityName;
-  final List<CommunityModel>? communities;
-  final List<UserCommunityModel>? userCommunities;
-  final bool isCommunitiesLoading;
-  final String? communitiesError;
 
   FeedState({
     this.feed,
@@ -34,10 +28,6 @@ class FeedState {
     this.searchQuery,
     this.targetUserId,
     this.selectedCommunityName,
-    this.communities,
-    this.userCommunities,
-    this.isCommunitiesLoading = false,
-    this.communitiesError,
   });
 
   FeedState copyWith({
@@ -52,10 +42,6 @@ class FeedState {
     String? searchQuery,
     String? targetUserId,
     String? selectedCommunityName,
-    List<CommunityModel>? communities,
-    List<UserCommunityModel>? userCommunities,
-    bool? isCommunitiesLoading,
-    String? communitiesError,
     bool clearSelectedCommunityName = false,
   }) {
     return FeedState(
@@ -72,16 +58,13 @@ class FeedState {
       selectedCommunityName: clearSelectedCommunityName
           ? null
           : (selectedCommunityName ?? this.selectedCommunityName),
-      communities: communities ?? this.communities,
-      userCommunities: userCommunities ?? this.userCommunities,
-      isCommunitiesLoading: isCommunitiesLoading ?? this.isCommunitiesLoading,
-      communitiesError: communitiesError ?? this.communitiesError,
     );
   }
 
   factory FeedState.initial() => FeedState(
     feed: [],
-    isLoading: false,
+    // True until firstFetchFeed runs — avoids empty list matching "no posts" before load.
+    isLoading: true,
     error: null,
     isFirstLoad: true,
     isLoadMore: false,
@@ -89,9 +72,5 @@ class FeedState {
     feedType: FeedType.popular,
     timeframe: TopFeedTimeframe.day,
     selectedCommunityName: null,
-    communities: [],
-    userCommunities: [],
-    isCommunitiesLoading: false,
-    communitiesError: null,
   );
 }

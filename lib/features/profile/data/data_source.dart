@@ -1,16 +1,26 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/services/cash.dart';
+import 'package:mini_reddit_v2/core/services/cash.dart' as cache_service;
+import 'package:mini_reddit_v2/core/utils/supabase_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// RPC / cache often returns [Map<dynamic, dynamic>]; [as Map<String, dynamic>] throws.
+Map<String, dynamic> _jsonMap(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  throw FormatException('Expected JSON object, got ${value.runtimeType}');
+}
+
 class ProfileDataSource {
-  final cash = CashService();
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final cache_service.CashService cash = cache_service.CashService();
 
   // Get profile
   Future<UserProfileModel> getProfile(String userId) async {
     print('Fetching profile for user: $userId');
-    final response = await Supabase.instance.client.rpc(
+    final response = await _supabase.rpc(
       'get_user_profile',
       params: {
         'p_user_id': userId,
@@ -19,9 +29,9 @@ class ProfileDataSource {
     );
 
     if (response is List && response.isNotEmpty) {
-      return UserProfileModel.fromJson(response.first as Map<String, dynamic>);
+      return UserProfileModel.fromJson(_jsonMap(response.first));
     } else if (response is Map) {
-      return UserProfileModel.fromJson(response as Map<String, dynamic>);
+      return UserProfileModel.fromJson(_jsonMap(response));
     }
     throw Exception('Profile not found');
   }
@@ -38,8 +48,8 @@ class ProfileDataSource {
   }) async {
     dynamic response;
     bool needToCash = true;
-    if (cash.exist(Key.userPost) && !forceRefresh) {
-      response = cash.get(Key.userPost);
+    if (cash.exist(cache_service.Key.userPost) && !forceRefresh) {
+      response = cash.get(cache_service.Key.userPost);
       needToCash = false;
     } else {
       response = await Supabase.instance.client.rpc(
@@ -57,11 +67,9 @@ class ProfileDataSource {
 
     final List<dynamic> data = response is List ? response : [response];
 
-    if (needToCash) cash.save(Key.userPost, data);
+    if (needToCash) cash.save(cache_service.Key.userPost, data);
 
-    return data
-        .map((json) => FeedPostModel.fromJson(json as Map<String, dynamic>))
-        .toList();
+    return data.map((json) => FeedPostModel.fromJson(_jsonMap(json))).toList();
   }
 
   Future<List<UserProfileCommentItem>> getUserComments({
@@ -72,8 +80,8 @@ class ProfileDataSource {
   }) async {
     dynamic response;
     bool needToCash = true;
-    if (cash.exist(Key.userComment) && !forceRefresh) {
-      response = cash.get(Key.userComment);
+    if (cash.exist(cache_service.Key.userComment) && !forceRefresh) {
+      response = cash.get(cache_service.Key.userComment);
       needToCash = false;
     } else {
       response = await Supabase.instance.client.rpc(
@@ -89,15 +97,12 @@ class ProfileDataSource {
 
     if (response == null) return [];
 
-    if (needToCash) cash.save(Key.userComment, response);
-
     final List<dynamic> data = response is List ? response : [response];
 
+    if (needToCash) cash.save(cache_service.Key.userComment, data);
+
     return data
-        .map(
-          (json) =>
-              UserProfileCommentItem.fromJson(json as Map<String, dynamic>),
-        )
+        .map((json) => UserProfileCommentItem.fromJson(_jsonMap(json)))
         .toList();
   }
 
@@ -110,8 +115,8 @@ class ProfileDataSource {
     dynamic response;
     bool needToCash = true;
 
-    if (cash.exist(Key.userSavedPost) && !forceRefresh) {
-      response = cash.get(Key.userSavedPost);
+    if (cash.exist(cache_service.Key.userSavedPost) && !forceRefresh) {
+      response = cash.get(cache_service.Key.userSavedPost);
       needToCash = false;
     } else {
       response = await Supabase.instance.client.rpc(
@@ -124,11 +129,9 @@ class ProfileDataSource {
 
     final List<dynamic> data = response is List ? response : [response];
 
-    if (needToCash) cash.save(Key.userSavedPost, data);
+    if (needToCash) cash.save(cache_service.Key.userSavedPost, data);
 
-    return data
-        .map((json) => FeedPostModel.fromJson(json as Map<String, dynamic>))
-        .toList();
+    return data.map((json) => FeedPostModel.fromJson(_jsonMap(json))).toList();
   }
 
   Future<UserProfileModel> updateProfile({
@@ -137,6 +140,7 @@ class ProfileDataSource {
     String? fullName,
     String? bio,
     String? avatarUrl,
+    String? bannerUrl,
   }) async {
     try {
       final response = await Supabase.instance.client
@@ -146,6 +150,7 @@ class ProfileDataSource {
             if (fullName != null) 'full_name': fullName,
             if (bio != null) 'bio': bio,
             if (avatarUrl != null) 'avatar_url': avatarUrl,
+            if (bannerUrl != null) 'banner_url': bannerUrl,
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', userId)
@@ -161,7 +166,7 @@ class ProfileDataSource {
   }
 
   Future<String?> uploadPostImage(File imageFile) async {
-    final String bucketName = 'users_profile_images';
+    final String bucketName = SupabaseText.userProfileBuckets;
     try {
       final fileName =
           '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
@@ -170,13 +175,30 @@ class ProfileDataSource {
           .from(bucketName)
           .upload(fileName, imageFile);
 
-      final url = Supabase.instance.client.storage
+      return Supabase.instance.client.storage
           .from(bucketName)
           .getPublicUrl(fileName);
-
-      return url;
     } catch (e) {
-      print('Error uploading image: $e');
+      debugPrint('Error uploading post image: $e');
+      return null;
+    }
+  }
+
+  Future<String?> uploadBannerImage(File imageFile) async {
+    final String bucketName = SupabaseText.bannerBuckets;
+    try {
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
+
+      await Supabase.instance.client.storage
+          .from(bucketName)
+          .upload(fileName, imageFile);
+
+      return Supabase.instance.client.storage
+          .from(bucketName)
+          .getPublicUrl(fileName);
+    } catch (e) {
+      debugPrint('Error uploading banner image: $e');
       return null;
     }
   }

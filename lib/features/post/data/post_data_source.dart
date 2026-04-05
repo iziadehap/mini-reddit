@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/utils/supabase_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PostDataSource {
@@ -108,7 +109,7 @@ class PostDataSource {
       params: {'p_post_id': postId, 'p_current_user_id': userId},
     );
 
-    debugPrint('post details data from data source: $response');
+    // debugPrint('post details data from data source: $response');
 
     // Check if response is a list and has items
     if (response is List && response.isNotEmpty) {
@@ -178,11 +179,11 @@ class PostDataSource {
         final path = '$userId/$fileName';
 
         await Supabase.instance.client.storage
-            .from('post_images')
+            .from(SupabaseText.postImageBuckets)
             .upload(path, file);
 
         return Supabase.instance.client.storage
-            .from('post_images')
+            .from(SupabaseText.postImageBuckets)
             .getPublicUrl(path);
       }).toList();
 

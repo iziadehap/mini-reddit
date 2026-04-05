@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:like_button/like_button.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
+import 'package:mini_reddit_v2/core/widgets/post_images_carousel.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/screens/community_screen.dart';
 
@@ -234,46 +235,15 @@ class FeedPostCard extends StatelessWidget {
   }
 
   Widget _buildImageContent(BuildContext context) {
-    final tokens = context.tokens;
+    final urls = post.images!
+        .map((e) => e.imageUrl)
+        .where((u) => u.isNotEmpty)
+        .toList();
+    if (urls.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Image.network(
-            post.images!.first.imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: tokens.bgElevated,
-              child: Center(
-                child: Icon(
-                  Icons.broken_image,
-                  size: 40,
-                  color: tokens.textMuted,
-                ),
-              ),
-            ),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                color: tokens.bgElevated,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                    strokeWidth: 2,
-                    color: tokens.brandOrange,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
+      child: PostImagesCarousel(imageUrls: urls),
     );
   }
 

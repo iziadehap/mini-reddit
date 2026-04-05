@@ -54,6 +54,8 @@ dependencies:
   hive_ce_flutter: ^2.3.4
   like_button: ^2.1.0
   flutter_launcher_icons: ^0.14.4
+  carousel_slider_plus: ^7.1.1
+  photo_opener_view: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -89,7 +91,7 @@ flutter:
     - .env
     - assets/fonts/
     - assets/images/emojis/
-    - assets/images/icons/
+    - assets/icons/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

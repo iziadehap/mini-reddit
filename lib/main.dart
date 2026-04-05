@@ -7,8 +7,11 @@ import 'package:mini_reddit_v2/core/services/cash.dart';
 import 'package:mini_reddit_v2/core/services/supabase_services.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/theme/theme_provider.dart';
+import 'package:mini_reddit_v2/features/auth/presentation/pages/create_new_password_screen.dart'; // 🔴 أضف هذا الـ import
+import 'package:mini_reddit_v2/features/auth/presentation/pages/forget_password_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/splash_screen.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Root navigator for FCM / deep links (no [BuildContext] in background handlers).
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -17,6 +20,10 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 String? pendingNotificationPostId;
 
 void main() async {
+  // test acc
+
+  // email: noyox99951@fengnu.com
+  // password: asdfghjkl
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await SupabaseService.initialize();
@@ -26,6 +33,25 @@ void main() async {
   await FirebaseMessaging.instance.requestPermission();
 
   String? token = await FirebaseMessaging.instance.getToken();
+
+  // Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+  //   debugPrint('🔐 Auth Event: ${data.event}');
+
+  //   if (data.event == AuthChangeEvent.passwordRecovery) {
+  //     debugPrint(
+  //       '🔐 Password recovery detected! Navigating to create password screen...',
+  //     );
+
+  //     // استخدام rootNavigatorKey للانتقال (بدون context)
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       rootNavigatorKey.currentState?.push(
+  //         MaterialPageRoute(
+  //           builder: (context) => const CreateNewPasswordScreen(),
+  //         ),
+  //       );
+  //     });
+  //   }
+  // });
 
   // ============================================
   // معالج الضغط على الإشعار (التطبيق مفتوح)
@@ -97,7 +123,7 @@ void _handleNotificationTap(Map<String, dynamic> data) {
   final type = data['type'];
   final postId = data['post_id'] as String?;
 
-  print('🔔 Notification tapped: type=$type, postId=$postId');
+  debugPrint('🔔 Notification tapped: type=$type, postId=$postId');
 
   if (postId == null || postId.isEmpty) return;
 

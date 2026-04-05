@@ -10,6 +10,7 @@ abstract class ProfileRepo {
     String? fullName,
     String? bio,
     File? avatar,
+    File? banner,
   });
 
   Future<Either<Failure, List<FeedPostModel>>> getUserPosts({

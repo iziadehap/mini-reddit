@@ -52,6 +52,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfileModel>> {
     String? fullName,
     String? bio,
     File? avatar,
+    File? banner,
   }) async {
     state = const AsyncValue.loading();
     final response = await _repo.updateProfile(
@@ -60,6 +61,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfileModel>> {
       fullName: fullName,
       bio: bio,
       avatar: avatar,
+      banner: banner,
     );
     response.fold(
       (l) => state = AsyncValue.error(l.message, StackTrace.current),
