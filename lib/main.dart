@@ -6,6 +6,9 @@ import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/theme/theme_provider.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/splash_screen.dart';
 
+import 'core/services/supabase_services.dart';
+import 'core/theme/theme_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

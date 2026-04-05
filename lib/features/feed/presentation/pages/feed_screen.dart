@@ -18,6 +18,7 @@ import 'package:mini_reddit_v2/features/feed/presentation/widgets/community_draw
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/empty_feed_widget.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/custom_app_bar.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
+import 'package:mini_reddit_v2/features/feed/presentation/pages/search_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
@@ -129,10 +130,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   void _handleVote(String postId, int value) {
-    final post = ref
-        .read(feedProvider)
-        .feed
-        ?.firstWhere((post) => post.id == postId);
+    final post =
+        ref.read(feedProvider).feed?.firstWhere((post) => post.id == postId);
     if (post == null) return;
     ref
         .read(feedProvider.notifier)
@@ -181,10 +180,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               titleSpacing: 0,
               title: CustomAppBar(
                 openDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-                onSearch: () {},
+                onSearch: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UnifiedSearchScreen(),
+                    ),
+                  );
+                },
               ),
             ),
-
             _buildFeedContent(feedState),
           ],
         ),
@@ -217,7 +222,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CommunityScreen(communityName: communityName),
+              builder: (context) =>
+                  CommunityScreen(communityName: communityName),
             ),
           );
         },
@@ -243,8 +249,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             onComment: () => _navigateToPostDetails(post.id),
             onDelete:
                 post.authorId == Supabase.instance.client.auth.currentUser?.id
-                ? () => _handleDeletePost(post.id)
-                : null,
+                    ? () => _handleDeletePost(post.id)
+                    : null,
           ),
         );
       }, childCount: posts.length + 1),

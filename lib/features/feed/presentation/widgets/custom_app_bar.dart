@@ -47,9 +47,8 @@ class CustomAppBar extends StatelessWidget {
                     ),
                     child: Center(
                       child: TextFormField(
-                        onFieldSubmitted: (value) {
-                          onSearch();
-                        },
+                        readOnly: true,
+                        onTap: onSearch,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 14,
