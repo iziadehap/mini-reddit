@@ -4,6 +4,7 @@ import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
 import 'package:mini_reddit_v2/core/widgets/post_images_carousel.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/pages/user_profile_screen.dart';
 
 class PostCard extends StatelessWidget {
   final PostDetailsModel post;
@@ -72,7 +73,11 @@ class PostCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // Navigate to community/profile
+        if (post.communityName.isNotEmpty) {
+          // TODO: Navigate to community
+        } else if (post.authorId.isNotEmpty) {
+          _goToProfile(context, post.authorId);
+        }
       },
       child: CircleAvatar(
         radius: 20,
@@ -573,6 +578,13 @@ class PostCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _goToProfile(BuildContext context, String userId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => UserProfileScreen(userId: userId)),
     );
   }
 }

@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -55,6 +52,14 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCp90vogsdiK6R-up9YpXHQRKQdqek7BgU',
     appId: '1:480776096206:android:526271d2f1eee74540c39f',
+    messagingSenderId: '480776096206',
+    projectId: 'mini-reddit-9ee81',
+    storageBucket: 'mini-reddit-9ee81.firebasestorage.app',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCp90vogsdiK6R-up9YpXHQRKQdqek7BgU',
+    appId: '1:480776096206:web:526271d2f1eee74540c39f',
     messagingSenderId: '480776096206',
     projectId: 'mini-reddit-9ee81',
     storageBucket: 'mini-reddit-9ee81.firebasestorage.app',

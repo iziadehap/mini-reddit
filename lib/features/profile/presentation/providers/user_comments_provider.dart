@@ -4,10 +4,12 @@ import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/profile/domain/profile_repo.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/providers/user_posts_provider.dart';
 
-final userCommentsProvider = StateNotifierProvider.family<
-    UserCommentsNotifier,
-    AsyncValue<List<UserProfileCommentItem>>,
-    String>((ref, userId) {
+final userCommentsProvider =
+    StateNotifierProvider.family<
+      UserCommentsNotifier,
+      AsyncValue<List<UserProfileCommentItem>>,
+      String
+    >((ref, userId) {
       return UserCommentsNotifier(ref.read(postRepositoryProvider), userId);
     });
 
@@ -18,7 +20,7 @@ class UserCommentsNotifier
 
   UserCommentsNotifier(this._repo, this.userId)
     : super(const AsyncValue.loading()) {
-    fetchUserComments();
+    fetchUserComments(forceRefresh: true);
   }
 
   Future<void> fetchUserComments({bool forceRefresh = false}) async {

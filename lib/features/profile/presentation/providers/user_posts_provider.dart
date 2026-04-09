@@ -25,7 +25,7 @@ class UserPostsNotifier extends StateNotifier<AsyncValue<List<FeedPostModel>>> {
 
   UserPostsNotifier(this._repo, this.userId)
     : super(const AsyncValue.loading()) {
-    fetchUserPosts();
+    fetchUserPosts(forceRefresh: true);
   }
 
   Future<void> fetchUserPosts({bool forceRefresh = false}) async {

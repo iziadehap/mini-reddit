@@ -47,11 +47,20 @@ class ProfileDataSource {
     int offset = 0,
   }) async {
     dynamic response;
-    bool needToCash = true;
-    if (cash.exist(cache_service.Key.userPost) && !forceRefresh) {
-      response = cash.get(cache_service.Key.userPost);
-      needToCash = false;
-    } else {
+    var loadedFromCache = false;
+
+    if (!forceRefresh && cash.exist(cache_service.Key.userPost)) {
+      final cached = cash.get(cache_service.Key.userPost);
+      if (cached is Map) {
+        final cachedUserId = cached['userId']?.toString();
+        if (cachedUserId == userId) {
+          response = cached['data'];
+          loadedFromCache = true;
+        }
+      }
+    }
+
+    if (!loadedFromCache) {
       response = await Supabase.instance.client.rpc(
         'get_user_posts',
         params: {
@@ -67,7 +76,9 @@ class ProfileDataSource {
 
     final List<dynamic> data = response is List ? response : [response];
 
-    if (needToCash) cash.save(cache_service.Key.userPost, data);
+    if (!loadedFromCache) {
+      cash.save(cache_service.Key.userPost, {'userId': userId, 'data': data});
+    }
 
     return data.map((json) => FeedPostModel.fromJson(_jsonMap(json))).toList();
   }
@@ -79,11 +90,20 @@ class ProfileDataSource {
     int offset = 0,
   }) async {
     dynamic response;
-    bool needToCash = true;
-    if (cash.exist(cache_service.Key.userComment) && !forceRefresh) {
-      response = cash.get(cache_service.Key.userComment);
-      needToCash = false;
-    } else {
+    var loadedFromCache = false;
+
+    if (!forceRefresh && cash.exist(cache_service.Key.userComment)) {
+      final cached = cash.get(cache_service.Key.userComment);
+      if (cached is Map) {
+        final cachedUserId = cached['userId']?.toString();
+        if (cachedUserId == userId) {
+          response = cached['data'];
+          loadedFromCache = true;
+        }
+      }
+    }
+
+    if (!loadedFromCache) {
       response = await Supabase.instance.client.rpc(
         'get_user_comments',
         params: {
@@ -99,7 +119,12 @@ class ProfileDataSource {
 
     final List<dynamic> data = response is List ? response : [response];
 
-    if (needToCash) cash.save(cache_service.Key.userComment, data);
+    if (!loadedFromCache) {
+      cash.save(cache_service.Key.userComment, {
+        'userId': userId,
+        'data': data,
+      });
+    }
 
     return data
         .map((json) => UserProfileCommentItem.fromJson(_jsonMap(json)))

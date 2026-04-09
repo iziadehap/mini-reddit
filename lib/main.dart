@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,11 +9,8 @@ import 'package:mini_reddit_v2/core/services/cash.dart';
 import 'package:mini_reddit_v2/core/services/supabase_services.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/theme/theme_provider.dart';
-import 'package:mini_reddit_v2/features/auth/presentation/pages/create_new_password_screen.dart'; // 🔴 أضف هذا الـ import
-import 'package:mini_reddit_v2/features/auth/presentation/pages/forget_password_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/splash_screen.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Root navigator for FCM / deep links (no [BuildContext] in background handlers).
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -27,12 +26,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await SupabaseService.initialize();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await CashService().init();
 
-  await FirebaseMessaging.instance.requestPermission();
-
-  String? token = await FirebaseMessaging.instance.getToken();
+  String? token;
+  if (!kIsWeb) {
+    await FirebaseMessaging.instance.requestPermission();
+    token = await FirebaseMessaging.instance.getToken();
+  }
 
   // Supabase.instance.client.auth.onAuthStateChange.listen((data) {
   //   debugPrint('🔐 Auth Event: ${data.event}');
@@ -56,19 +57,23 @@ void main() async {
   // ============================================
   // معالج الضغط على الإشعار (التطبيق مفتوح)
   // ============================================
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    _handleNotificationTap(message.data);
-  });
+  if (!kIsWeb) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _handleNotificationTap(message.data);
+    });
+  }
 
   // ============================================
   // معالج الإشعار اللي فتح التطبيق (التطبيق كان مقفول)
   // ============================================
-  RemoteMessage? initialMessage = await FirebaseMessaging.instance
-      .getInitialMessage();
-  if (initialMessage != null) {
-    final postId = initialMessage.data['post_id'] as String?;
-    if (postId != null && postId.isNotEmpty) {
-      pendingNotificationPostId = postId;
+  if (!kIsWeb) {
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance
+        .getInitialMessage();
+    if (initialMessage != null) {
+      final postId = initialMessage.data['post_id'] as String?;
+      if (postId != null && postId.isNotEmpty) {
+        pendingNotificationPostId = postId;
+      }
     }
   }
 

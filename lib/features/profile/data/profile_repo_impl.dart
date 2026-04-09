@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/profile/data/data_source.dart';
 import 'package:mini_reddit_v2/features/profile/domain/profile_repo.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileRepoImpl implements ProfileRepo {
   final ProfileDataSource dataSource;
@@ -13,10 +12,8 @@ class ProfileRepoImpl implements ProfileRepo {
   ProfileRepoImpl(this.dataSource);
 
   @override
-  Future<Either<Failure, UserProfileModel>> getProfile() async {
+  Future<Either<Failure, UserProfileModel>> getProfile(String userId) async {
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
       return Right(await dataSource.getProfile(userId));
     } catch (e) {
       return Left(Failure(e.toString()));

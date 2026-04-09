@@ -40,7 +40,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfileModel>> {
       state = const AsyncValue.loading();
     }
 
-    final response = await _repo.getProfile();
+    final response = await _repo.getProfile(_userId);
     response.fold(
       (l) => state = AsyncValue.error(l.message, StackTrace.current),
       (r) => state = AsyncValue.data(r),

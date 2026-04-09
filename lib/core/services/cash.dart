@@ -5,6 +5,7 @@ enum Key {
   userPost,
   userComment,
   userSavedPost,
+  blockedUsers,
   themeMode,
 
   // userCash,
@@ -34,7 +35,6 @@ class CashService {
   /// Get data with enum key (returns null if none)
   dynamic get(Key key) {
     return _box?.get(key.name);
-    
   }
 
   /// Check if enum key exists

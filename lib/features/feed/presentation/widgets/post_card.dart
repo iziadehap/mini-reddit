@@ -6,6 +6,7 @@ import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/post_images_carousel.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/screens/community_screen.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/pages/user_profile_screen.dart';
 
 class FeedPostCard extends StatelessWidget {
   final FeedPostModel post;
@@ -43,7 +44,6 @@ class FeedPostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final typo = context.rTypo;
 
     return Container(
       decoration: BoxDecoration(
@@ -88,22 +88,30 @@ class FeedPostCard extends StatelessWidget {
   Widget _buildAvatar(BuildContext context) {
     final tokens = context.tokens;
 
-    // Determine which avatar to show (community > author)
     String? avatarUrl = post.communityName.isNotEmpty
         ? post.communityImageUrl
         : post.authorAvatarUrl;
 
-    return CircleAvatar(
-      radius: 16,
-      backgroundColor: tokens.bgElevated,
-      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-      child: avatarUrl == null
-          ? Icon(
-              post.communityName.isNotEmpty ? Icons.group : Icons.person,
-              size: 16,
-              color: tokens.textSecondary,
-            )
-          : null,
+    return GestureDetector(
+      onTap: () {
+        if (post.communityName.isNotEmpty) {
+          _goToCommunity(context, post.communityId);
+        } else if (post.authorId.isNotEmpty) {
+          _goToProfile(context, post.authorId);
+        }
+      },
+      child: CircleAvatar(
+        radius: 16,
+        backgroundColor: tokens.bgElevated,
+        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+        child: avatarUrl == null
+            ? Icon(
+                post.communityName.isNotEmpty ? Icons.group : Icons.person,
+                size: 16,
+                color: tokens.textSecondary,
+              )
+            : null,
+      ),
     );
   }
 
@@ -133,7 +141,15 @@ class FeedPostCard extends StatelessWidget {
               Icon(Icons.circle, size: 3, color: tokens.textMuted),
               const SizedBox(width: 4),
             ],
-            Text('u/${post.authorUsername}', style: typo.postMeta),
+            const SizedBox(width: 4),
+            InkWell(
+              onTap: () {
+                if (post.authorId.isNotEmpty) {
+                  _goToProfile(context, post.authorId);
+                }
+              },
+              child: Text('u/${post.authorUsername}', style: typo.postMeta),
+            ),
           ],
         ),
         const SizedBox(height: 2),
@@ -325,7 +341,6 @@ class FeedPostCard extends StatelessWidget {
 
   Widget _buildSaveButton(BuildContext context) {
     final tokens = context.tokens;
-    final typo = context.rTypo;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       height: 34,
@@ -640,5 +655,12 @@ class FeedPostCard extends StatelessWidget {
     );
   }
 
-  void _goToProfile(BuildContext context) {}
+  void _goToProfile(BuildContext context, String userId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserProfileScreen(userId: userId),
+      ),
+    );
+  }
 }

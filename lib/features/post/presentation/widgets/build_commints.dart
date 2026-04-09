@@ -4,6 +4,7 @@ import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/vote_button.dart';
 import 'package:mini_reddit_v2/features/post/presentation/providers/post_provider.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/pages/user_profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BuildCommentsSection extends ConsumerStatefulWidget {
@@ -382,23 +383,40 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                comment.authorUsername,
-                                style:
-                                    (isReply
-                                            ? typo.titleSmall
-                                            : typo.titleMedium)
-                                        .copyWith(
-                                          fontSize: isReply ? 13 : 14,
-                                          color: t.textPrimary,
-                                        ),
-                              ),
-                              if (isReply) const SizedBox(height: 2),
-                              Text(
-                                '@${comment.authorUsername}',
-                                style: typo.bodySmall.copyWith(
-                                  color: t.textSecondary,
-                                  fontSize: isReply ? 11 : 12,
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => UserProfileScreen(
+                                        userId: comment.authorId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      comment.authorUsername,
+                                      style:
+                                          (isReply
+                                                  ? typo.titleSmall
+                                                  : typo.titleMedium)
+                                              .copyWith(
+                                                fontSize: isReply ? 13 : 14,
+                                                color: t.textPrimary,
+                                              ),
+                                    ),
+                                    if (isReply) const SizedBox(height: 2),
+                                    Text(
+                                      '@${comment.authorUsername}',
+                                      style: typo.bodySmall.copyWith(
+                                        color: t.textSecondary,
+                                        fontSize: isReply ? 11 : 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
