@@ -141,9 +141,14 @@ class ProfileDataSource {
     bool needToCash = true;
 
     if (cash.exist(cache_service.Key.userSavedPost) && !forceRefresh) {
-      response = cash.get(cache_service.Key.userSavedPost);
-      needToCash = false;
-    } else {
+      final cachedResponse = cash.get(cache_service.Key.userSavedPost);
+      if (cachedResponse != null) {
+        response = cachedResponse;
+        needToCash = false;
+      }
+    }
+    
+    if (response == null) {
       response = await Supabase.instance.client.rpc(
         'get_saved_posts',
         params: {'p_user_id': userId, 'p_limit': limit, 'p_offset': offset},

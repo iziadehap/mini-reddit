@@ -25,6 +25,7 @@ class FeedPostModel {
   final String? flairId;
   final String? flairName;
   final String? flairColor;
+  final bool? isDeleted;
 
   FeedPostModel({
     required this.id,
@@ -49,6 +50,7 @@ class FeedPostModel {
     this.flairId,
     this.flairName,
     this.flairColor,
+    this.isDeleted,
   });
 
   factory FeedPostModel.fromJson(Map<String, dynamic> json) {
@@ -73,9 +75,9 @@ class FeedPostModel {
       userVote: (json['user_vote'] as num?)?.toInt(),
       images: json['images'] is List
           ? (json['images'] as List)
-              .whereType<Map>()
-              .map((m) => PostImage.fromJson(Map<String, dynamic>.from(m)))
-              .toList()
+                .whereType<Map>()
+                .map((m) => PostImage.fromJson(Map<String, dynamic>.from(m)))
+                .toList()
           : null,
       isSaved: json['is_saved'] ?? false,
       communityId: json['community_id']?.toString() ?? '',
@@ -84,6 +86,7 @@ class FeedPostModel {
       flairId: json['flair_id']?.toString(),
       flairName: json['flair_name']?.toString(),
       flairColor: json['flair_color']?.toString(),
+      isDeleted: json['is_deleted'] as bool?,
     );
   }
 
@@ -110,6 +113,7 @@ class FeedPostModel {
     'flair_id': flairId,
     'flair_name': flairName,
     'flair_color': flairColor,
+    'is_deleted': isDeleted,
   };
 
   // ✅ FIXED: Added isSaved parameter
@@ -137,6 +141,7 @@ class FeedPostModel {
     String? flairId,
     String? flairName,
     String? flairColor,
+    bool? isDeleted,
   }) {
     return FeedPostModel(
       id: id ?? this.id,
@@ -161,6 +166,7 @@ class FeedPostModel {
       flairId: flairId ?? this.flairId,
       flairName: flairName ?? this.flairName,
       flairColor: flairColor ?? this.flairColor,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 

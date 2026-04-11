@@ -1513,7 +1513,8 @@ RETURNS TABLE (
     user_vote smallint,
     images jsonb,
     flair_name text,
-    flair_color text
+    flair_color text,
+    is_saved boolean
 )
 LANGUAGE sql
 STABLE
@@ -1536,7 +1537,8 @@ AS $$
             ORDER BY pi.position
          ) FROM public.post_images pi WHERE pi.post_id = p.id) AS images,
         f.name AS flair_name,
-        f.color AS flair_color
+        f.color AS flair_color,
+        EXISTS(SELECT 1 FROM public.saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = p_user_id) AS is_saved
     FROM public.posts p
     LEFT JOIN public.profiles pr ON p.user_id = pr.id
     LEFT JOIN public.flairs f ON p.flair_id = f.id
@@ -2084,7 +2086,8 @@ RETURNS TABLE (
     author_id uuid,
     author_username text,
     community_id uuid,
-    community_name text
+    community_name text,
+    is_saved boolean
 )
 LANGUAGE sql
 STABLE
@@ -2101,7 +2104,8 @@ AS $$
         p.user_id as author_id,
         pr.username as author_username,
         c.id as community_id,
-        c.name as community_name
+        c.name as community_name,
+        true as is_saved
     FROM public.saved_posts sp
     JOIN public.posts p ON sp.post_id = p.id
     JOIN public.profiles pr ON p.user_id = pr.id

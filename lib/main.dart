@@ -1,10 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'package:mini_reddit_v2/core/services/cash.dart';
 import 'package:mini_reddit_v2/core/services/supabase_services.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
@@ -90,9 +92,13 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
   @override
   void initState() {
     super.initState();
+    _initDeepLinks();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final id = pendingNotificationPostId;
       if (id != null) {
@@ -100,6 +106,45 @@ class _MyAppState extends ConsumerState<MyApp> {
         _pushPostDetails(id);
       }
     });
+  }
+
+  Future<void> _initDeepLinks() async {
+    _appLinks = AppLinks();
+
+    // Handle deep link when app is started
+    try {
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLink(initialUri);
+      }
+    } catch (e) {
+      debugPrint('Failed to get initial app link: $e');
+    }
+
+    // Handle deep link while app is running
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      _handleDeepLink(uri);
+    }, onError: (err) {
+      debugPrint('Failed to listen to app links: $err');
+    });
+  }
+
+  void _handleDeepLink(Uri uri) {
+    debugPrint('Got Deep Link: $uri');
+    if (uri.scheme == 'mini-reddit' && uri.host == 'post') {
+      final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+      if (postId != null && postId.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _pushPostDetails(postId);
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
   }
 
   @override

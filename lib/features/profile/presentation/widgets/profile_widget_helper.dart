@@ -1,7 +1,7 @@
 // lib/features/profile/presentation/widgets/profile_shimmer.dart
 
 import 'package:flutter/material.dart';
-import 'package:shimmer_ai/shimmer_ai.dart';
+import 'package:mini_reddit_v2/core/widgets/shimmer_helper.dart';
 
 class ProfileShimmer extends StatelessWidget {
   const ProfileShimmer({super.key});

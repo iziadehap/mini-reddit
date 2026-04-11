@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
+import 'package:mini_reddit_v2/core/widgets/custom_snackbar.dart';
 import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
 import 'package:mini_reddit_v2/core/widgets/skeleton_loader.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
@@ -11,7 +14,11 @@ import 'package:mini_reddit_v2/features/communities/presentation/widgets/communi
 import 'package:mini_reddit_v2/features/post/presentation/pages/create_post_screen.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/post_card.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
+import 'package:mini_reddit_v2/features/post/presentation/providers/save_post_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+part 'community_screen/community_screen_app_bar.dart';
+part 'community_screen/community_screen_posts.dart';
 
 class CommunityScreen extends ConsumerStatefulWidget {
   final String communityId;
@@ -69,6 +76,18 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     );
   }
 
+  void _copyPostLink(String postId) {
+    final link = '${RedditConstants.postDeepLinkPrefix}$postId';
+    Clipboard.setData(ClipboardData(text: link));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Post link copied'),
+        backgroundColor: context.tokens.bgElevated,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   void _handleDelete(String postId) {
     showDialog(
       context: context,
@@ -81,9 +100,38 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(communitiesActionsProvider.notifier).removePost(postId);
+            onPressed: () async {
               Navigator.pop(context);
+              try {
+                await ref
+                    .read(communitiesActionsProvider.notifier)
+                    .removePost(postId);
+                if (mounted) {
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  showCustomSnackBar(
+                    context,
+                    isDark: isDark,
+                    message: 'Post deleted successfully',
+                    icon: Icons.check,
+                    color: Colors.green,
+                    isError: false,
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  showCustomSnackBar(
+                    context,
+                    isDark: isDark,
+                    message: 'Failed to delete post: $e',
+                    icon: Icons.error,
+                    color: Colors.red,
+                    isError: true,
+                  );
+                }
+              }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -134,324 +182,4 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
       ),
     );
   }
-
-  // ─── App Bar ─────────────────────────────────────────────────
-  Widget _buildAppBar(
-    BuildContext context,
-    AsyncValue<CommunityDetailsModel> detailsState,
-    RedditTokens tokens,
-  ) {
-    return SliverAppBar(
-      expandedHeight: 20,
-      pinned: true,
-      backgroundColor: tokens.bgSurface,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: AnimatedOpacity(
-        opacity: _showStickyTitle ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 180),
-        child: Row(
-          children: [
-            // Small avatar in sticky bar
-            detailsState.whenOrNull(
-                  data: (details) {
-                    final community = details.community;
-                    if (community == null) return null;
-                    return CircleAvatar(
-                      radius: 14,
-                      backgroundColor: tokens.brandOrange,
-                      backgroundImage: community.imageUrl != null
-                          ? NetworkImage(community.imageUrl!)
-                          : null,
-                      child: community.imageUrl == null
-                          ? Text(
-                              community.name[0].toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            )
-                          : null,
-                    );
-                  },
-                ) ??
-                const SizedBox.shrink(),
-            const SizedBox(width: AppSpacing.sm),
-            Flexible(
-              child: Text(
-                'r/${widget.communityId}',
-                style: context.rTypo.titleMedium,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-      // actions: [
-      //   // Edit action visible in the sticky bar for moderators
-      //   detailsState.whenOrNull(
-      //         data: (details) {
-      //           if (!details.userStatus.isAdmin) return null;
-      //           return IconButton(
-      //             icon: Icon(Icons.edit_outlined, color: tokens.textPrimary),
-      //             tooltip: 'Edit community',
-      //             onPressed: details.community != null
-      //                 ? () => _openEditSheet(details.community!)
-      //                 : null,
-      //           );
-      //         },
-      //       ) ??
-      //       const SizedBox.shrink(),
-      //   IconButton(
-      //     icon: Icon(Icons.share_outlined, color: tokens.textPrimary),
-      //     onPressed: () {},
-      //   ),
-      //   IconButton(
-      //     icon: Icon(Icons.more_horiz, color: tokens.textPrimary),
-      //     onPressed: () {},
-      //   ),
-      // ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            detailsState.when(
-              data: (details) => details.community?.bannerUrl != null
-                  ? Image.network(
-                      details.community!.bannerUrl!,
-                      fit: BoxFit.cover,
-                    )
-                  : _defaultBanner(tokens),
-              loading: () => _defaultBanner(tokens),
-              error: (_, __) => _defaultBanner(tokens),
-            ),
-            // Gradient overlay so back button stays legible
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.black.withOpacity(0.45), Colors.transparent],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _defaultBanner(RedditTokens tokens) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [tokens.brandOrangeDark, tokens.brandOrange],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-    );
-  }
-
-  // ─── Community Header ─────────────────────────────────────────
-  Widget _buildHeader(AsyncValue<CommunityDetailsModel> detailsState) {
-    return detailsState.when(
-      data: (details) =>
-          SliverToBoxAdapter(child: CommunityHeader(details: details)),
-      loading: () => const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
-          child: SkeletonLoader(height: 160),
-        ),
-      ),
-      error: (err, _) => SliverToBoxAdapter(
-        child: ErrorWidgetCustom(
-          message: 'Failed to load community: $err',
-          onRetry: _fetchData,
-        ),
-      ),
-    );
-  }
-
-  // // ─── Sort Bar ─────────────────────────────────────────────────
-  // Widget _buildSortBar(RedditTokens tokens) {
-  //   return SliverPersistentHeader(
-  //     pinned: true,
-  //     delegate: _SortBarDelegate(tokens: tokens),
-  //   );
-  // }
-
-  // ─── Post List ────────────────────────────────────────────────
-  Widget _buildPostList(
-    AsyncValue<List<FeedPostModel>> postsState,
-    RedditTokens tokens,
-  ) {
-    return postsState.when(
-      data: (posts) {
-        if (posts.isEmpty) return _emptyState(tokens);
-
-        return SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final post = posts[index];
-            final isOwn =
-                post.authorId == Supabase.instance.client.auth.currentUser?.id;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: FeedPostCard(
-                post: post,
-                onTap: () => _navigateToPost(post.id),
-                onUpvote: () => ref
-                    .read(fetchCommunityPostsProvider.notifier)
-                    .votePost(
-                      postId: post.id,
-                      value: 1,
-                      authorId: post.authorId,
-                    ),
-                onDownvote: () => ref
-                    .read(fetchCommunityPostsProvider.notifier)
-                    .votePost(
-                      postId: post.id,
-                      value: -1,
-                      authorId: post.authorId,
-                    ),
-                onComment: () => _navigateToPost(post.id),
-                onDelete: isOwn ? () => _handleDelete(post.id) : null,
-              ),
-            );
-          }, childCount: posts.length),
-        );
-      },
-      loading: () => SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (_, __) => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 0),
-            child: SkeletonLoader(height: 200),
-          ),
-          childCount: 3,
-        ),
-      ),
-      error: (err, _) => SliverFillRemaining(
-        hasScrollBody: false,
-        child: ErrorWidgetCustom(
-          message: 'Failed to load posts: $err',
-          onRetry: _fetchData,
-        ),
-      ),
-    );
-  }
-
-  Widget _emptyState(RedditTokens tokens) {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xxxl),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: tokens.bgElevated,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.article_outlined,
-                  size: 40,
-                  color: tokens.textMuted,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text('No posts yet', style: context.rTypo.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Be the first to post in r/${widget.communityId}!',
-                style: context.rTypo.bodyMedium.copyWith(
-                  color: tokens.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: navigate to create post
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Create Post'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: tokens.brandOrange,
-                  side: BorderSide(color: tokens.brandOrange),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
-
-// // ─── Sort Bar Delegate ────────────────────────────────────────
-// class _SortBarDelegate extends SliverPersistentHeaderDelegate {
-//   final RedditTokens tokens;
-
-//   _SortBarDelegate({required this.tokens});
-
-//   @override
-//   double get minExtent => 48;
-//   @override
-//   double get maxExtent => 48;
-
-//   @override
-//   Widget build(
-//     BuildContext context,
-//     double shrinkOffset,
-//     bool overlapsContent,
-//   ) {
-//     return Container(
-//       color: tokens.bgCanvas,
-//       child: Row(
-//         children: [
-//           const SizedBox(width: AppSpacing.lg),
-//           _SortChip(
-//             label: 'Hot',
-//             icon: Icons.local_fire_department,
-//             selected: true,
-//             tokens: tokens,
-//           ),
-//           const SizedBox(width: AppSpacing.sm),
-//           _SortChip(
-//             label: 'New',
-//             icon: Icons.fiber_new_outlined,
-//             selected: false,
-//             tokens: tokens,
-//           ),
-//           const SizedBox(width: AppSpacing.sm),
-//           _SortChip(
-//             label: 'Top',
-//             icon: Icons.bar_chart,
-//             selected: false,
-//             tokens: tokens,
-//           ),
-//           const Spacer(),
-//           IconButton(
-//             icon: Icon(Icons.tune, size: 20, color: tokens.textSecondary),
-//             onPressed: () {},
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   @override
-//   bool shouldRebuild(_SortBarDelegate oldDelegate) => false;
-// }

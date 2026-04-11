@@ -340,15 +340,21 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
 
     return InkWell(
       onTap: () {
-        // ref.read(feedProvider.notifier).selectCommunity(community.name);
-
-        Navigator.pop(context); // Close drawer
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CommunityScreen(communityId: community.name),
-          ),
-        );
+        try {
+          Navigator.pop(context); // Close drawer
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  CommunityScreen(communityId: community.id ?? ''),
+            ),
+          );
+        } catch (e) {
+          debugPrint('Error navigating to community: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error opening community: $e')),
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -384,10 +390,13 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('r/${community.name}', style: rTypo.communityName),
+                  Text(
+                    'r/${community.name ?? 'unknown'}',
+                    style: rTypo.communityName,
+                  ),
                   const SizedBox(height: 1),
                   Text(
-                    '${community.membersCount} members',
+                    '${community.membersCount ?? 0} members',
                     style: rTypo.bodySmall.copyWith(
                       color: tokens.textSecondary,
                     ),

@@ -7,6 +7,31 @@ import 'package:mini_reddit_v2/features/post/presentation/providers/post_provide
 import 'package:mini_reddit_v2/features/profile/presentation/pages/user_profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+final isCommunityAdminProvider = FutureProvider.family<bool, String>((
+  ref,
+  communityId,
+) async {
+  final userId = Supabase.instance.client.auth.currentUser?.id;
+  if (userId == null || communityId.isEmpty) {
+    return false;
+  }
+
+  final rows = await Supabase.instance.client
+      .from('community_members')
+      .select('role')
+      .eq('community_id', communityId)
+      .eq('user_id', userId)
+      .limit(1);
+
+  if (rows.isNotEmpty) {
+    final role =
+        Map<String, dynamic>.from(rows.first)['role']?.toString() ?? '';
+    return role == 'admin';
+  }
+
+  return false;
+});
+
 class BuildCommentsSection extends ConsumerStatefulWidget {
   final List<CommentModel> comments;
   const BuildCommentsSection({super.key, required this.comments});
@@ -82,6 +107,15 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final communityId = ref.watch(
+      postProvider.select((state) => state.post?.communityId ?? ''),
+    );
+    final isCommunityAdmin = communityId.isNotEmpty
+        ? ref
+              .watch(isCommunityAdminProvider(communityId))
+              .maybeWhen(data: (value) => value, orElse: () => false)
+        : false;
+
     if (widget.comments.isEmpty) {
       return _buildEmptyState();
     }
@@ -98,7 +132,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
           itemCount: widget.comments.length,
           itemBuilder: (context, index) {
             final comment = widget.comments[index];
-            return _buildCommentThread(comment, 0);
+            return _buildCommentThread(comment, 0, isCommunityAdmin);
           },
         ),
       ],
@@ -209,7 +243,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
   }
 
   // دالة لعرض التعليق وكل ردوده بشكل متداخل
-  Widget _buildCommentThread(CommentModel comment, int depth) {
+  Widget _buildCommentThread(CommentModel comment, int depth, bool isAdmin) {
     final showAll = _showReplies[comment.id] ?? false;
     final repliesToShow = showAll
         ? comment.replies
@@ -219,7 +253,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
     return Column(
       children: [
         // التعليق الحالي
-        _buildCommentItem(comment, depth),
+        _buildCommentItem(comment, depth, isAdmin),
 
         // الردود (إذا وجدت)
         if (comment.replies.isNotEmpty)
@@ -232,7 +266,11 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: repliesToShow.length,
                   itemBuilder: (context, index) {
-                    return _buildCommentThread(repliesToShow[index], depth + 1);
+                    return _buildCommentThread(
+                      repliesToShow[index],
+                      depth + 1,
+                      isAdmin,
+                    );
                   },
                 ),
 
@@ -321,7 +359,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
     );
   }
 
-  Widget _buildCommentItem(CommentModel comment, int depth) {
+  Widget _buildCommentItem(CommentModel comment, int depth, bool isAdmin) {
     final String currentUserId = Supabase.instance.client.auth.currentUser!.id;
     final bool isReply = depth > 0;
     final t = context.tokens;
@@ -534,7 +572,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
 
                         const Spacer(),
 
-                        if (comment.authorId == currentUserId) ...[
+                        if (comment.authorId == currentUserId || isAdmin) ...[
                           IconButton(
                             onPressed: () {
                               _showDeleteDialog(comment.id, context);
@@ -646,26 +684,59 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete comment'),
-        content: const Text('Are you sure you want to delete this comment?'),
+        backgroundColor: context.tokens.bgSurface,
+        title: Text('Delete comment', style: context.rTypo.titleMedium),
+        content: Text(
+          'Are you sure you want to delete this comment?',
+          style: context.rTypo.bodyMedium,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: context.rTypo.labelMedium.copyWith(
+                color: context.tokens.textPrimary,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: context.tokens.error),
+            child: Text(
+              'Delete',
+              style: context.rTypo.labelMedium.copyWith(
+                color: context.tokens.error,
+              ),
+            ),
           ),
         ],
       ),
     );
 
     if (confirm == true) {
-      // TODO: Implement delete comment
-      ref.read(postProvider.notifier).deleteComment(commentId);
-      debugPrint('Delete comment: $commentId');
+      try {
+        await ref.read(postProvider.notifier).deleteComment(commentId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Comment deleted successfully'),
+              backgroundColor: context.tokens.bgElevated,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: context.tokens.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     }
   }
 }

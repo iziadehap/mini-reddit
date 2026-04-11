@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/services/cash.dart';
 import 'package:mini_reddit_v2/core/services/supabase_services.dart';
 import 'package:mini_reddit_v2/core/models/user_devices.dart';
-import 'package:mini_reddit_v2/features/auth/data/auth_dataSources.dart';
+import 'package:mini_reddit_v2/features/auth/data/auth_data_sources.dart';
 import 'package:mini_reddit_v2/features/auth/data/auth_repo_impl.dart';
 import 'package:mini_reddit_v2/features/auth/domain/auth_repo.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_state.dart';

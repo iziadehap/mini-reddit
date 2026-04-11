@@ -5,8 +5,9 @@ import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/post_card.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/post_details_screen.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/providers/user_saved_posts_provider.dart';
-import 'package:shimmer_ai/shimmer_ai.dart';
+import 'package:mini_reddit_v2/core/widgets/shimmer_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mini_reddit_v2/features/post/presentation/providers/save_post_provider.dart';
 
 class SavePostScreen extends ConsumerStatefulWidget {
   const SavePostScreen({super.key});
@@ -117,6 +118,17 @@ class _SavePostScreenState extends ConsumerState<SavePostScreen> {
                         builder: (_) => PostDetailsScreen(postId: post.id),
                       ),
                     );
+                  },
+                  onSave: () async {
+                    if (post.isSaved) {
+                      ref.read(savePostProvider(post.id).notifier).unsavePost(post.id);
+                      // Let userSavedPostsProvider handle removing it from local list if desired, 
+                      // or just toggle its property
+                      // We'll trust the pull-to-refresh for now
+                    } else {
+                      ref.read(savePostProvider(post.id).notifier).savePost(post.id);
+                    }
+                    return !post.isSaved;
                   },
                 );
               },

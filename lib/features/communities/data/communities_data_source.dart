@@ -141,15 +141,26 @@ class CommunitiesDataSource {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
+      final extension = file.path.split('.').last;
+      final sanitizedName = file.path
+          .split(Platform.pathSeparator)
+          .last
+          .replaceAll(RegExp(r'[^\w\d.]'), '_');
       final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+          '${DateTime.now().millisecondsSinceEpoch}_$sanitizedName';
       final path = '$userId/$fileName';
 
-      await _supabase.storage.from(SupabaseText.communityImageBuckets).upload(path, file);
+      final bytes = await file.readAsBytes();
 
-      return _supabase.storage.from(SupabaseText.communityImageBuckets).getPublicUrl(path);
+      await _supabase.storage
+          .from(SupabaseText.communityImageBuckets)
+          .uploadBinary(path, bytes);
+
+      return _supabase.storage
+          .from(SupabaseText.communityImageBuckets)
+          .getPublicUrl(path);
     } catch (e) {
-      debugPrint('Error uploading community icon: $e');
+      debugPrint('Error uploading community image: $e');
       rethrow;
     }
   }
@@ -242,21 +253,20 @@ class CommunitiesDataSource {
 
       final originalPost = await _supabase
           .from('posts')
-          .select('content, image_url, author_id')
+          .select('content, image_url, user_id')
           .eq('id', originalPostId)
           .single();
 
       final postData = {
         'community_id': targetCommunityId,
-        'author_id': userId,
+        'user_id': userId,
+        'title': 'Shared Post',
+        'post_type': 'text',
         'content': additionalContent ?? originalPost['content'],
         'image_url': originalPost['image_url'],
-        'original_post_id': originalPostId,
-        'original_author_id': originalPost['author_id'],
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
         'is_deleted': false,
-        'is_share': true,
       };
 
       final response = await _supabase.from('posts').insert(postData).select('''
@@ -265,9 +275,9 @@ class CommunitiesDataSource {
             image_url,
             created_at,
             updated_at,
-            author_id,
+            user_id,
             community_id,
-            profiles:author_id (
+            profiles:user_id (
               username,
               full_name,
               avatar_url
@@ -276,6 +286,7 @@ class CommunitiesDataSource {
 
       return FeedPostModel.fromJson({
         ...response,
+        'author_id': response['user_id'],
         'author_username': response['profiles']?['username'],
         'author_full_name': response['profiles']?['full_name'],
         'author_avatar_url': response['profiles']?['avatar_url'],
@@ -290,22 +301,60 @@ class CommunitiesDataSource {
   }
 
   // حذف منشور من مجتمع (حذف ناعم)
-
-  // todo : use fuction to delete post
   Future<void> removePostFromCommunity(String postId) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
+      // Get post details to check community and author
       final post = await _supabase
           .from('posts')
-          .select('author_id')
+          .select('user_id, community_id')
           .eq('id', postId)
           .single();
 
-      if (post['author_id'] != userId) {
-        throw Exception('You can only remove your own posts');
+      // Check if user is the post author
+      final isPostAuthor = post['user_id'] == userId;
+
+      bool canDelete = isPostAuthor;
+
+      // If not the author, check if user is admin/moderator or owner of the community
+      if (!canDelete && post['community_id'] != null) {
+        // Get community details to check owner
+        final community = await _supabase
+            .from('communities')
+            .select('owner_id, created_by')
+            .eq('id', post['community_id'])
+            .single();
+
+        final ownerId = community['owner_id'] ?? community['created_by'];
+        final isCommunityOwner = ownerId == userId;
+
+        // Check if user is admin/moderator in the community
+        bool isCommunityAdmin = false;
+        try {
+          final memberData = await _supabase
+              .from('community_members')
+              .select('role')
+              .eq('community_id', post['community_id'])
+              .eq('user_id', userId)
+              .single();
+          final role = memberData['role'];
+          isCommunityAdmin = role == 'admin' || role == 'moderator';
+        } catch (_) {
+          // ignore if membership not found
+        }
+
+        canDelete = isCommunityOwner || isCommunityAdmin;
       }
+
+      if (!canDelete) {
+        throw Exception(
+          'You can only remove your own posts or if you are a community owner/admin/moderator',
+        );
+      }
+
+      debugPrint('🗑️ Deleting post $postId by setting is_deleted = true');
 
       await _supabase
           .from('posts')
@@ -314,7 +363,10 @@ class CommunitiesDataSource {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', postId);
+
+      debugPrint('✅ Post $postId deleted in database');
     } catch (e) {
+      debugPrint('❌ Failed to delete post: $e');
       throw Exception('Failed to remove post: $e');
     }
   }
@@ -352,6 +404,7 @@ class CommunitiesDataSource {
           .map<FeedPostModel>(
             (e) => FeedPostModel.fromJson(e as Map<String, dynamic>),
           )
+          .where((post) => post.isDeleted != true) // Filter out deleted posts
           .toList();
     } catch (e) {
       debugPrint('Error getting community posts: $e');

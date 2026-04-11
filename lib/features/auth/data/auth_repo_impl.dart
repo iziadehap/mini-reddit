@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/models/user_devices.dart';
 import 'package:mini_reddit_v2/core/utils/auth_error_handler.dart';
-import 'package:mini_reddit_v2/features/auth/data/auth_dataSources.dart';
+import 'package:mini_reddit_v2/features/auth/data/auth_data_sources.dart';
 import 'package:mini_reddit_v2/features/auth/domain/auth_repo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -50,6 +50,7 @@ class AuthRepoImpl implements AuthRepo {
     }
   }
 
+  @override
   Future<Either<Failure, List<UserDevice>>> getUserDevices() async {
     try {
       final result = await _authDataSource.getUserDevices();

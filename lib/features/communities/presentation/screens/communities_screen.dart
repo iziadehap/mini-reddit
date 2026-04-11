@@ -449,7 +449,7 @@ class _CommunitiesScreenState extends ConsumerState<CommunitiesScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CommunityScreen(communityId: communityName),
+        builder: (context) => CommunityScreen(communityId: communityId),
       ),
     );
   }

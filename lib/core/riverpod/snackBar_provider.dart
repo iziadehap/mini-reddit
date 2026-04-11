@@ -1,3 +1,3 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final snackBarProvider = StateProvider<String?>((ref) => null);

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_repo_impl.dart';
@@ -45,6 +45,33 @@ class FetchCommunityPostsNotifier
           state = AsyncValue.error(failure.message, StackTrace.current),
       (posts) => state = AsyncValue.data(posts),
     );
+  }
+
+  void removePostLocally(String postId) {
+    final posts = state.value;
+    if (posts == null) return;
+    final updated = posts.where((p) => p.id != postId).toList();
+    if (updated.length != posts.length) {
+      state = AsyncValue.data(updated);
+    }
+  }
+
+  void updatePostLocally(FeedPostModel updatedPost) {
+    final posts = state.value;
+    if (posts == null) return;
+    
+    bool hasChanges = false;
+    final updated = posts.map((p) {
+      if (p.id == updatedPost.id) {
+        hasChanges = true;
+        return updatedPost;
+      }
+      return p;
+    }).toList();
+    
+    if (hasChanges) {
+      state = AsyncValue.data(updated);
+    }
   }
 
   Future<void> votePost({

@@ -201,6 +201,61 @@ class PostDataSource {
     required String userId,
   }) async {
     try {
+      final commentRows = await _supabase
+          .from('comments')
+          .select('user_id, post_id')
+          .eq('id', commentId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+      if (commentRows.isEmpty) {
+        throw Exception('Comment not found');
+      }
+
+      final comment = Map<String, dynamic>.from(commentRows.first);
+      final commentOwnerId = comment['user_id']?.toString() ?? '';
+      final postId = comment['post_id']?.toString() ?? '';
+
+      var canDelete = commentOwnerId == userId;
+
+      if (!canDelete && postId.isNotEmpty) {
+        final postRows = await _supabase
+            .from('posts')
+            .select('community_id')
+            .eq('id', postId)
+            .limit(1);
+
+        if (postRows.isNotEmpty) {
+          final communityId =
+              Map<String, dynamic>.from(
+                postRows.first,
+              )['community_id']?.toString() ??
+              '';
+
+          if (communityId.isNotEmpty) {
+            final memberRows = await _supabase
+                .from('community_members')
+                .select('role')
+                .eq('community_id', communityId)
+                .eq('user_id', userId)
+                .limit(1);
+
+            if (memberRows.isNotEmpty) {
+              final role =
+                  Map<String, dynamic>.from(
+                    memberRows.first,
+                  )['role']?.toString() ??
+                  '';
+              canDelete = role == 'admin';
+            }
+          }
+        }
+      }
+
+      if (!canDelete) {
+        throw Exception('You are not allowed to delete this comment');
+      }
+
       final response = await _supabase
           .from('comments')
           .update({
@@ -208,8 +263,8 @@ class PostDataSource {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', commentId)
-          .eq('user_id', userId)
           .select();
+
       debugPrint('Delete response: $response');
       return response;
     } catch (e) {

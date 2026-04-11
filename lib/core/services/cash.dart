@@ -42,6 +42,11 @@ class CashService {
     return _box?.containsKey(key.name) ?? false;
   }
 
+  /// Delete data with enum key
+  Future<void> delete(Key key) async {
+    await _box?.delete(key.name);
+  }
+
   // remove all cash
   Future<void> clear() async {
     // Print all keys before clearing

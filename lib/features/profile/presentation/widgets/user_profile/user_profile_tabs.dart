@@ -10,6 +10,7 @@ import 'package:mini_reddit_v2/features/profile/presentation/widgets/profile_com
 import 'package:mini_reddit_v2/features/profile/presentation/widgets/user_profile/user_profile_active_in.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/widgets/user_profile/user_profile_common_widgets.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/widgets/user_profile/user_profile_formatters.dart';
+import 'package:mini_reddit_v2/features/post/presentation/providers/save_post_provider.dart';
 
 class UserProfileBlockedView extends StatelessWidget {
   const UserProfileBlockedView({super.key});
@@ -116,6 +117,14 @@ class UserProfilePostsTab extends ConsumerWidget {
                       builder: (_) => PostDetailsScreen(postId: post.id),
                     ),
                   ),
+                  onSave: () async {
+                    if (post.isSaved) {
+                      ref.read(savePostProvider(post.id).notifier).unsavePost(post.id);
+                    } else {
+                      ref.read(savePostProvider(post.id).notifier).savePost(post.id);
+                    }
+                    return !post.isSaved;
+                  },
                 );
               },
             ),

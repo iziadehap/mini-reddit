@@ -1,6 +1,7 @@
 // lib/features/feed/presentation/widgets/empty_feed_widget.dart
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 
 class EmptyFeedWidget extends StatelessWidget {
@@ -34,9 +35,9 @@ class EmptyFeedWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildSubtitle(isDark),
                 const SizedBox(height: 40),
-                _buildPrimaryButton(),
+                _buildPrimaryButton(context),
                 const SizedBox(height: 16),
-                _buildSecondaryButton(),
+                _buildSecondaryButton(context),
                 const SizedBox(height: 32),
                 _buildTrendingCommunities(isDark),
               ],
@@ -59,8 +60,11 @@ class EmptyFeedWidget extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [RedditConstants.orange, RedditConstants.orangeLight],
+              gradient: LinearGradient(
+                colors: [
+                  context.tokens.brandOrange,
+                  context.tokens.brandOrangeLight,
+                ],
               ),
               shape: BoxShape.circle,
             ),
@@ -102,11 +106,11 @@ class EmptyFeedWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPrimaryButton() {
+  Widget _buildPrimaryButton(BuildContext context) {
     return ElevatedButton(
       onPressed: onFindCommunities,
       style: ElevatedButton.styleFrom(
-        backgroundColor: RedditConstants.orange,
+        backgroundColor: context.tokens.brandOrange,
         foregroundColor: Colors.white,
         minimumSize: const Size(240, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -126,12 +130,12 @@ class EmptyFeedWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSecondaryButton() {
+  Widget _buildSecondaryButton(BuildContext context) {
     return OutlinedButton(
       onPressed: onExplorePopular,
       style: OutlinedButton.styleFrom(
-        foregroundColor: RedditConstants.orange,
-        side: const BorderSide(color: RedditConstants.orange, width: 1.5),
+        foregroundColor: context.tokens.brandOrange,
+        side: BorderSide(color: context.tokens.brandOrange, width: 1.5),
         minimumSize: const Size(240, 44),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
@@ -181,7 +185,7 @@ class EmptyFeedWidget extends StatelessWidget {
   Widget _buildCommunityChip(String label, IconData icon, bool isDark) {
     return ActionChip(
       onPressed: () => onCommunityTap(label.replaceFirst('r/', '')),
-      avatar: Icon(icon, size: 16, color: RedditConstants.orange),
+      avatar: Icon(icon, size: 16, color: const Color(0xFFFF4500)),
       label: Text(label),
       backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
       labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),

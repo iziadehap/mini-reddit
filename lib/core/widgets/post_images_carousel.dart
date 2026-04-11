@@ -1,9 +1,8 @@
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
-import 'package:photo_opener_view/photo_opener_view.dart';
 
-/// Swipeable post images with dot indicators; tap opens [MediaViewer] gallery.
+/// Swipeable post images with dot indicators.
 class PostImagesCarousel extends StatefulWidget {
   const PostImagesCarousel({
     super.key,
@@ -50,11 +49,25 @@ class _PostImagesCarouselState extends State<PostImagesCarousel> {
           itemBuilder: (context, index, realIndex) {
             return GestureDetector(
               onTap: () {
-                MediaViewer.openImageGallery(
-                  context,
-                  urls,
-                  initialIndex: index,
-                  showThumbnails: n > 1,
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      backgroundColor: Colors.black,
+                      appBar: AppBar(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        leading: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      body: Center(
+                        child: InteractiveViewer(
+                          child: Image.network(urls[index]),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
               child: ClipRRect(

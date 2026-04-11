@@ -1,22 +1,42 @@
 // lib/core/constants/reddit_constants.dart
-import 'dart:ui';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 
 class RedditConstants {
-  // Colors
-  static const Color orange = Color(0xFFFF4500);
-  static const Color orangeLight = Color(0xFFFF571F);
-  static const Color upvote = Color(0xFFFF4500);
-  static const Color downvote = Color(0xFF7193FF);
-  static const Color bannerColor = Color(0xFF0079D3);
-  static const Color darkSurface = Color(0xFF1A1A1B);
+  // Use app_theme_v2 tokens for theme values
+  // Access via: context.tokens.brandOrange, etc.
 
-  // Spacing
-  static const double cardSpacing = 8.0;
-  static const double cardPadding = 12.0;
+  // Spacing (from AppSpacing tokens)
+  static const double cardSpacing = AppSpacing.sm; // 8.0
+  static const double cardPadding = AppSpacing.md; // 12.0
   static const double avatarRadius = 16.0;
 
   // Animation
   static const Duration animationDuration = Duration(milliseconds: 200);
+
+  // Deep links
+  static const String postDeepLinkPrefix = 'mini-reddit://post/';
+  static const String communityDeepLinkPrefix = 'mini-reddit://community/';
+}
+
+// Theme constants using app_theme_v2
+abstract final class ThemeConstants {
+  // Border radius
+  static const double radiusXs = AppRadius.xs;
+  static const double radiusSm = AppRadius.sm;
+  static const double radiusMd = AppRadius.md;
+  static const double radiusLg = AppRadius.lg;
+  static const double radiusFull = AppRadius.full;
+
+  // Spacing shortcuts
+  static const double spacingXxs = AppSpacing.xxs;
+  static const double spacingXs = AppSpacing.xs;
+  static const double spacingSm = AppSpacing.sm;
+  static const double spacingMd = AppSpacing.md;
+  static const double spacingLg = AppSpacing.lg;
+  static const double spacingXl = AppSpacing.xl;
+  static const double spacingXxl = AppSpacing.xxl;
+  static const double spacingXxxl = AppSpacing.xxxl;
+  static const double spacingHuge = AppSpacing.huge;
 }
 
 // lib/core/constants/string_constants.dart

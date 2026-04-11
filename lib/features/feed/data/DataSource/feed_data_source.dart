@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -25,11 +26,24 @@ class FeedDataSource {
   ) async {
     final data = await _supabase.rpc(rpcName, params: params);
 
-    // debugPrint('📡 Fetching $rpcName with params: $params');
-    // debugPrint('📦 $rpcName response: $data');
+    debugPrint('📡 Fetching $rpcName with params: $params');
+    debugPrint('📦 $rpcName response count: ${(data as List).length}');
 
-    return (data as List)
+    final posts = (data as List)
         .map((e) => FeedPostModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    // Log is_deleted status for each post
+    for (final post in posts.take(3)) {
+      debugPrint(
+        'Post ${post.id} isDeleted: ${post.isDeleted} (type: ${post.isDeleted.runtimeType})',
+      );
+    }
+
+    return posts
+        .where(
+          (post) => post.isDeleted != true,
+        ) // Filter out deleted posts
         .toList();
   }
 

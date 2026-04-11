@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
 import 'package:mini_reddit_v2/core/widgets/post_images_carousel.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/pages/user_profile_screen.dart';
@@ -149,8 +150,8 @@ class PostCard extends StatelessWidget {
     return OutlinedButton(
       onPressed: onFollow,
       style: OutlinedButton.styleFrom(
-        foregroundColor: RedditConstants.orange,
-        side: const BorderSide(color: RedditConstants.orange, width: 1),
+        foregroundColor: context.tokens.brandOrange,
+        side: BorderSide(color: context.tokens.brandOrange, width: 1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         minimumSize: const Size(64, 28),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -410,7 +411,7 @@ class PostCard extends StatelessWidget {
                 ? Icons.arrow_upward
                 : Icons.arrow_upward_outlined,
             color: post.userVote == 1
-                ? RedditConstants.upvote
+                ? context.tokens.upvote
                 : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
             onTap: onUpvote,
             isLeft: true,
@@ -423,9 +424,9 @@ class PostCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
                 color: post.userVote == 1
-                    ? RedditConstants.upvote
+                    ? context.tokens.upvote
                     : post.userVote == -1
-                    ? RedditConstants.downvote
+                    ? context.tokens.downvote
                     : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
               ),
             ),
@@ -435,7 +436,7 @@ class PostCard extends StatelessWidget {
                 ? Icons.arrow_downward
                 : Icons.arrow_downward_outlined,
             color: post.userVote == -1
-                ? RedditConstants.downvote
+                ? context.tokens.downvote
                 : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
             onTap: onDownvote,
             isRight: true,

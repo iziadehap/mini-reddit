@@ -89,17 +89,17 @@ class AuthDataSource {
           );
 
       if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-        print('User declined notification permission');
+        debugPrint('User declined notification permission');
         return null;
       }
 
       // الحصول على FCM Token
       String? token = await _firebaseMessaging.getToken();
-      print('FCM Token: $token');
+      debugPrint('FCM Token: $token');
 
       return token;
     } catch (e) {
-      print('Error getting FCM token: $e');
+      debugPrint('Error getting FCM token: $e');
       return null;
     }
   }
@@ -121,8 +121,8 @@ class AuthDataSource {
 
     // 3. الاستماع للإشعارات عندما يكون التطبيق في المقدمة
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
+      debugPrint('Got a message whilst in the foreground!');
+      debugPrint('Message data: ${message.data}');
 
       // هنا تقدر تعرض إشعار محلي باستخدام flutter_local_notifications
       // أو تحديث واجهة المستخدم
@@ -133,7 +133,7 @@ class AuthDataSource {
 
     // 5. التعامل مع الضغط على الإشعار
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('User tapped on notification!');
+      debugPrint('User tapped on notification!');
       // هنا تقدر تفتح الشاشة المناسبة بناءً على data
       _handleNotificationTap(message.data);
     });
@@ -153,9 +153,7 @@ class AuthDataSource {
     // هنا تقرر الشاشة اللي هتفتحها بناءً على نوع الإشعار
     String? type = data['type'];
     String? postId = data['post_id'];
-    String? commentId = data['comment_id'];
-
-    print('Notification tapped: type=$type, postId=$postId');
+    debugPrint('Notification tapped: type=$type, postId=$postId');
 
     // مثال: لو كان الإشعار عن بوست، تفتح شاشة البوست
     // if (type == 'upvote' || type == 'downvote' || type == 'comment') {
@@ -324,6 +322,6 @@ class AuthDataSource {
 // ============================================
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Handling a background message: ${message.messageId}");
+  debugPrint("Handling a background message: ${message.messageId}");
   // هنا تقدر تعرض إشعار محلي أو تسجيل في logs
 }

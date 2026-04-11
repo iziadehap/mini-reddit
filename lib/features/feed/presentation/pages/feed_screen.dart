@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/enum.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/get_feed_type.dart';
 import 'package:mini_reddit_v2/core/widgets/custom_snackbar.dart';
 import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
@@ -106,9 +107,38 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             child: const Text(StringConstants.cancel),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(communitiesActionsProvider.notifier).removePost(postId);
+            onPressed: () async {
               Navigator.pop(context);
+              try {
+                await ref
+                    .read(communitiesActionsProvider.notifier)
+                    .removePost(postId);
+                if (mounted) {
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  showCustomSnackBar(
+                    context,
+                    isDark: isDark,
+                    message: 'Post deleted successfully',
+                    icon: Icons.check,
+                    color: Colors.green,
+                    isError: false,
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  showCustomSnackBar(
+                    context,
+                    isDark: isDark,
+                    message: 'Failed to delete post: $e',
+                    icon: Icons.error,
+                    color: Colors.red,
+                    isError: true,
+                  );
+                }
+              }
             },
             child: const Text(
               StringConstants.delete,
@@ -146,7 +176,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         .feed
         ?.firstWhere((post) => post.id == postId);
     if (post == null) return false;
-    ref.read(savePostProvider(postId).notifier).savePost(postId);
+    
+    if (post.isSaved) {
+      ref.read(savePostProvider(postId).notifier).unsavePost(postId);
+    } else {
+      ref.read(savePostProvider(postId).notifier).savePost(postId);
+    }
+    
+    ref.read(feedProvider.notifier).updateFeedPostLocally(post.toggleSave());
     return !post.isSaved;
   }
 
@@ -191,7 +228,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       // endDrawer: const UserDrawer(),
       body: RefreshIndicator(
         onRefresh: _refreshFeed,
-        color: RedditConstants.orange,
+        color: context.tokens.brandOrange,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         child: CustomScrollView(
           controller: _scrollController,
@@ -267,10 +304,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             onUpvote: () => _handleVote(post.id, 1),
             onDownvote: () => _handleVote(post.id, -1),
             onComment: () => _navigateToPostDetails(post.id),
-            onDelete:
-                post.authorId == Supabase.instance.client.auth.currentUser?.id
-                ? () => _handleDeletePost(post.id)
-                : null,
+            onDelete: () => _handleDeletePost(post.id),
             onSave: () => _handleSave(post.id),
           ),
         );
@@ -291,12 +325,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildLoadingMore() {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Center(
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(RedditConstants.orange),
+          valueColor: AlwaysStoppedAnimation<Color>(context.tokens.brandOrange),
         ),
       ),
     );
