@@ -59,6 +59,7 @@ abstract final class _Palette {
 // ────────────────────────────────────────────────────────────
 // 2. SPACING & RADIUS TOKENS  (static, not theme-dependent)
 // ────────────────────────────────────────────────────────────
+// ignore: camel_case_types
 abstract final class ppSpacing {
   static const double xxs = 2;
   static const double xs = 4;
@@ -326,10 +327,10 @@ class RedditTokens extends ThemeExtension<RedditTokens> {
   // ── convenience getters ──────────────────────────────────
   bool get isDark => bgPage.computeLuminance() < 0.05;
 
-  Color get orangeWithOpacity10 => brandOrange.withOpacity(0.10);
-  Color get orangeWithOpacity20 => brandOrange.withOpacity(0.20);
-  Color get errorWithOpacity15 => error.withOpacity(0.15);
-  Color get successWithOpacity15 => success.withOpacity(0.15);
+  Color get orangeWithOpacity10 => brandOrange.withValues(alpha: 0.10);
+  Color get orangeWithOpacity20 => brandOrange.withValues(alpha: 0.20);
+  Color get errorWithOpacity15 => error.withValues(alpha: 0.15);
+  Color get successWithOpacity15 => success.withValues(alpha: 0.15);
 
   // ── ThemeExtension impl ──────────────────────────────────
   @override
@@ -486,14 +487,14 @@ final _darkTokens = RedditTokens(
   brandOrangeLight: _Palette.orangeLight,
   brandOrangeDark: _Palette.orangeDark,
   brandBlue: _Palette.blueLight,
-  brandBlueMuted: _Palette.blue.withOpacity(0.60),
+  brandBlueMuted: _Palette.blue.withValues(alpha: 0.60),
   // Surfaces
   bgPage: _Palette.darkBg,
   bgCanvas: _Palette.darkCanvas,
   bgSurface: _Palette.darkSurface,
   bgElevated: _Palette.darkElevated,
   bgInput: _Palette.darkInputFill,
-  bgOverlay: Colors.black.withOpacity(0.72),
+  bgOverlay: Colors.black.withValues(alpha: 0.72),
   // Borders
   borderDefault: _Palette.darkBorder,
   borderFocused: _Palette.orange,
@@ -533,7 +534,7 @@ final _darkTokens = RedditTokens(
   awardGold: _Palette.gold,
   awardSilver: _Palette.silver,
   // Flair
-  flairBg: _Palette.orange.withOpacity(0.15),
+  flairBg: _Palette.orange.withValues(alpha: 0.15),
   flairText: _Palette.orangeLight,
 );
 
@@ -543,14 +544,14 @@ final _lightTokens = RedditTokens(
   brandOrangeLight: _Palette.orangeLight,
   brandOrangeDark: _Palette.orangeDark,
   brandBlue: _Palette.blue,
-  brandBlueMuted: _Palette.blue.withOpacity(0.60),
+  brandBlueMuted: _Palette.blue.withValues(alpha: 0.60),
   // Surfaces
   bgPage: _Palette.lightBg,
   bgCanvas: _Palette.lightCanvas,
   bgSurface: _Palette.lightSurface,
   bgElevated: _Palette.lightElevated,
   bgInput: _Palette.lightInputFill,
-  bgOverlay: Colors.black.withOpacity(0.50),
+  bgOverlay: Colors.black.withValues(alpha: 0.50),
   // Borders
   borderDefault: _Palette.lightBorder,
   borderFocused: _Palette.orange,
@@ -590,7 +591,7 @@ final _lightTokens = RedditTokens(
   awardGold: _Palette.gold,
   awardSilver: _Palette.silver,
   // Flair
-  flairBg: _Palette.orange.withOpacity(0.10),
+  flairBg: _Palette.orange.withValues(alpha: 0.10),
   flairText: _Palette.orangeDark,
 );
 
@@ -743,8 +744,8 @@ ElevatedButtonThemeData _elevatedButtonTheme(RedditTokens t) {
     style: ElevatedButton.styleFrom(
       backgroundColor: t.buttonPrimary,
       foregroundColor: t.buttonPrimaryText,
-      disabledBackgroundColor: t.buttonPrimary.withOpacity(0.35),
-      disabledForegroundColor: t.buttonPrimaryText.withOpacity(0.50),
+      disabledBackgroundColor: t.buttonPrimary.withValues(alpha: 0.35),
+      disabledForegroundColor: t.buttonPrimaryText.withValues(alpha: 0.50),
       elevation: 0,
       shadowColor: Colors.transparent,
       padding: const EdgeInsets.symmetric(
@@ -875,8 +876,8 @@ CardThemeData _cardTheme(RedditTokens t) {
 ChipThemeData _chipTheme(RedditTokens t) {
   return ChipThemeData(
     backgroundColor: t.bgElevated,
-    selectedColor: t.brandOrange.withOpacity(0.15),
-    secondarySelectedColor: t.brandOrange.withOpacity(0.15),
+    selectedColor: t.brandOrange.withValues(alpha: 0.15),
+    secondarySelectedColor: t.brandOrange.withValues(alpha: 0.15),
     labelStyle: TextStyle(
       fontFamily: 'IBMPlexSans',
       fontSize: 12,
@@ -922,7 +923,7 @@ BottomNavigationBarThemeData _bottomNavTheme(RedditTokens t) {
 NavigationBarThemeData _navigationBarTheme(RedditTokens t) {
   return NavigationBarThemeData(
     backgroundColor: t.navBar,
-    indicatorColor: t.brandOrange.withOpacity(0.15),
+    indicatorColor: t.brandOrange.withValues(alpha: 0.15),
     iconTheme: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.selected)) {
         return IconThemeData(color: t.navItemSelected, size: 24);
@@ -983,11 +984,11 @@ abstract final class AppTheme {
       colorScheme: ColorScheme.dark(
         primary: t.brandOrange,
         onPrimary: Colors.white,
-        primaryContainer: t.brandOrange.withOpacity(0.20),
+        primaryContainer: t.brandOrange.withValues(alpha: 0.20),
         onPrimaryContainer: t.brandOrangeLight,
         secondary: t.brandBlue,
         onSecondary: Colors.white,
-        secondaryContainer: t.brandBlue.withOpacity(0.20),
+        secondaryContainer: t.brandBlue.withValues(alpha: 0.20),
         onSecondaryContainer: t.brandBlue,
         surface: t.bgSurface,
         onSurface: t.textPrimary,
@@ -997,7 +998,7 @@ abstract final class AppTheme {
         outlineVariant: t.divider,
         error: t.error,
         onError: Colors.white,
-        errorContainer: t.error.withOpacity(0.15),
+        errorContainer: t.error.withValues(alpha: 0.15),
         onErrorContainer: t.error,
         inverseSurface: t.bgPage,
         onInverseSurface: t.textPrimary,
@@ -1043,7 +1044,7 @@ abstract final class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
-              ? t.brandOrange.withOpacity(0.40)
+              ? t.brandOrange.withValues(alpha: 0.40)
               : t.bgElevated,
         ),
       ),
@@ -1136,11 +1137,11 @@ abstract final class AppTheme {
       colorScheme: ColorScheme.light(
         primary: t.brandOrange,
         onPrimary: Colors.white,
-        primaryContainer: t.brandOrange.withOpacity(0.12),
+        primaryContainer: t.brandOrange.withValues(alpha: 0.12),
         onPrimaryContainer: t.brandOrangeDark,
         secondary: t.brandBlue,
         onSecondary: Colors.white,
-        secondaryContainer: t.brandBlue.withOpacity(0.12),
+        secondaryContainer: t.brandBlue.withValues(alpha: 0.12),
         onSecondaryContainer: t.brandBlue,
         surface: t.bgSurface,
         onSurface: t.textPrimary,
@@ -1150,7 +1151,7 @@ abstract final class AppTheme {
         outlineVariant: t.divider,
         error: t.error,
         onError: Colors.white,
-        errorContainer: t.error.withOpacity(0.12),
+        errorContainer: t.error.withValues(alpha: 0.12),
         onErrorContainer: t.error,
         inverseSurface: _Palette.darkSurface,
         onInverseSurface: _Palette.darkTextPrimary,
@@ -1196,7 +1197,7 @@ abstract final class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
-              ? t.brandOrange.withOpacity(0.35)
+              ? t.brandOrange.withValues(alpha: 0.35)
               : t.bgElevated,
         ),
       ),

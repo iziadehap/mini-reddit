@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 enum Key {
@@ -49,10 +50,10 @@ class CashService {
 
   // remove all cash
   Future<void> clear() async {
-    // Print all keys before clearing
-    print('Clearing all cash data:');
+    // debugPrint all keys before clearing
+    debugPrint('Clearing all cash data:');
     _box?.keys.forEach((key) {
-      print('  - $key');
+      debugPrint('  - $key');
     });
     await _box?.clear();
   }

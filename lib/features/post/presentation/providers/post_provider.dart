@@ -26,7 +26,7 @@ class PostProvider extends StateNotifier<PostState> {
   final void Function(PostDetailsModel)? onPostUpdated;
 
   PostProvider(this._postRepo, {this.onPostUpdated})
-    : super(PostState.initial());
+      : super(PostState.initial());
 
   // ========== Getters ==========
   String? get _userId => Supabase.instance.client.auth.currentUser?.id;

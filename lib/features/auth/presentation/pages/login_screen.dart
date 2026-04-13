@@ -106,7 +106,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF4500).withOpacity(0.35),
+                          color:
+                              const Color(0xFFFF4500).withValues(alpha: 0.35),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -134,7 +135,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Text(
                     'Sign in to continue to Mini Reddit',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.55),
+                      color: colorScheme.onSurface.withValues(alpha: 0.55),
                     ),
                   ),
                 ),
@@ -170,7 +171,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         size: 20,
-                        color: colorScheme.onSurface.withOpacity(0.5),
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
@@ -236,7 +237,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     Expanded(
                       child: Divider(
-                        color: colorScheme.onSurface.withOpacity(0.15),
+                        color: colorScheme.onSurface.withValues(alpha: 0.15),
                       ),
                     ),
                     Padding(
@@ -244,14 +245,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Text(
                         'or',
                         style: TextStyle(
-                          color: colorScheme.onSurface.withOpacity(0.4),
+                          color: colorScheme.onSurface.withValues(alpha: 0.4),
                           fontSize: 13,
                         ),
                       ),
                     ),
                     Expanded(
                       child: Divider(
-                        color: colorScheme.onSurface.withOpacity(0.15),
+                        color: colorScheme.onSurface.withValues(alpha: 0.15),
                       ),
                     ),
                   ],
@@ -269,7 +270,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     side: BorderSide(
-                      color: colorScheme.onSurface.withOpacity(0.2),
+                      color: colorScheme.onSurface.withValues(alpha: 0.2),
                     ),
                   ),
                 ),
@@ -281,16 +282,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: authState.isLoading
                         ? null
                         : () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignupScreen(),
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SignupScreen(),
+                              ),
                             ),
-                          ),
                     child: RichText(
                       text: TextSpan(
                         text: "Don't have an account? ",
                         style: TextStyle(
-                          color: colorScheme.onSurface.withOpacity(0.55),
+                          color: colorScheme.onSurface.withValues(alpha: 0.55),
                           fontSize: 14,
                         ),
                         children: const [

@@ -161,7 +161,7 @@ class _CommunitiesScreenState extends ConsumerState<CommunitiesScreen> {
             Icon(
               Icons.reddit,
               size: 80,
-              color: tokens.brandOrange.withOpacity(0.5),
+              color: tokens.brandOrange.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(

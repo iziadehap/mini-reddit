@@ -29,7 +29,7 @@ class FeedDataSource {
     debugPrint('📡 Fetching $rpcName with params: $params');
     debugPrint('📦 $rpcName response count: ${(data as List).length}');
 
-    final posts = (data as List)
+    final posts = data
         .map((e) => FeedPostModel.fromJson(e as Map<String, dynamic>))
         .toList();
 

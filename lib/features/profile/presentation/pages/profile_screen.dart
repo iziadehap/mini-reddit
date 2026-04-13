@@ -156,7 +156,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.35),
+                            Colors.black.withValues(alpha: 0.35),
                           ],
                         ),
                       ),
@@ -462,7 +462,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         icon: Icon(icon, size: 22),
         onPressed: onTap,
         style: IconButton.styleFrom(
-          backgroundColor: Colors.black.withOpacity(0.35),
+          backgroundColor: Colors.black.withValues(alpha: 0.35),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.all(8),
           minimumSize: const Size(36, 36),

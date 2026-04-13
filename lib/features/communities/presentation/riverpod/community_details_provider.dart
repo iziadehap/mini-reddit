@@ -1,23 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/community_details.dart';
 import 'package:mini_reddit_v2/core/models/snackbar_model.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_repo_impl.dart';
 import 'package:mini_reddit_v2/features/communities/domain/communities_repo.dart';
 
-final communityDetailsProvider =
-    StateNotifierProvider<
-      CommunityDetailsNotifier,
-      AsyncValue<CommunityDetailsModel>
-    >((ref) {
-      return CommunityDetailsNotifier(
-        communitiesRepo: CommunitiesRepoImpl(
-          communitiesDataSource: CommunitiesDataSource(),
-        ),
-        ref: ref,
-      );
-    });
+final communityDetailsProvider = StateNotifierProvider<CommunityDetailsNotifier,
+    AsyncValue<CommunityDetailsModel>>((ref) {
+  return CommunityDetailsNotifier(
+    communitiesRepo: CommunitiesRepoImpl(
+      communitiesDataSource: CommunitiesDataSource(),
+    ),
+    ref: ref,
+  );
+});
 
 class CommunityDetailsNotifier
     extends StateNotifier<AsyncValue<CommunityDetailsModel>> {
@@ -26,8 +22,8 @@ class CommunityDetailsNotifier
   CommunityDetailsNotifier({
     required CommunitiesRepo communitiesRepo,
     required this.ref,
-  }) : _communitiesRepo = communitiesRepo,
-       super(const AsyncLoading());
+  })  : _communitiesRepo = communitiesRepo,
+        super(const AsyncLoading());
 
   Future<void> fetchCommunityDetails(String communityName) async {
     setLoading();
@@ -58,13 +54,13 @@ class CommunityDetailsNotifier
     result.fold(
       (failure) {
         setError(failure.message);
-        ref.read(SuccessEditCommunityProvider.notifier).state = SnackBarModel(
+        ref.read(successEditCommunityProvider.notifier).state = SnackBarModel(
           message: failure.message,
           isError: true,
         );
       },
       (_) {
-        ref.read(SuccessEditCommunityProvider.notifier).state = SnackBarModel(
+        ref.read(successEditCommunityProvider.notifier).state = SnackBarModel(
           message: 'Community updated successfully!',
           isError: false,
         );
@@ -88,6 +84,6 @@ class CommunityDetailsNotifier
   }
 }
 
-final SuccessEditCommunityProvider = StateProvider<SnackBarModel?>(
+final successEditCommunityProvider = StateProvider<SnackBarModel?>(
   (ref) => null,
 );

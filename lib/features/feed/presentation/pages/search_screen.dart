@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
 import 'package:mini_reddit_v2/core/widgets/skeleton_loader.dart';
@@ -176,7 +175,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
           margin: const EdgeInsets.only(right: 16),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(30),
           ),
           child: Center(
@@ -210,7 +209,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
                   focusedBorder: InputBorder.none,
                   hintText: 'Search Reddit',
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 14,
                   ),
                   contentPadding: EdgeInsets.zero,
@@ -230,7 +229,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
             Tab(text: 'Users', icon: Icon(Icons.person_outline, size: 18)),
           ],
           labelColor: t.brandOrange,
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
           indicatorColor: t.brandOrange,
         ),
       ),
@@ -375,9 +374,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
                           Text(
                             '${community.membersCount} members',
                             style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 13,
                             ),
                           ),
@@ -467,13 +464,17 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
           Icon(
             Icons.search,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             hint,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.5),
               fontSize: 16,
             ),
           ),
@@ -492,7 +493,10 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
             Icon(
               Icons.search_off,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -508,7 +512,10 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
               'No results found for "$query"',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
                 fontSize: 14,
               ),
             ),

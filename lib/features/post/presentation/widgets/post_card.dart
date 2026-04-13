@@ -1,6 +1,5 @@
 // lib/features/post/presentation/widgets/post_card.dart
 import 'package:flutter/material.dart';
-import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
@@ -144,26 +143,6 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFollowButton(BuildContext context) {
-    if (post.communityName.isEmpty) return const SizedBox.shrink();
-
-    return OutlinedButton(
-      onPressed: onFollow,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: context.tokens.brandOrange,
-        side: BorderSide(color: context.tokens.brandOrange, width: 1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        minimumSize: const Size(64, 28),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: const Text(
-        'Follow',
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
   // ============= TITLE SECTION =============
   Widget _buildTitle(BuildContext context) {
     final theme = Theme.of(context);
@@ -210,10 +189,8 @@ class PostCard extends StatelessWidget {
   }
 
   Widget _buildImageGallery(BuildContext context) {
-    final urls = post.images
-        .map((e) => e.imageUrl)
-        .where((u) => u.isNotEmpty)
-        .toList();
+    final urls =
+        post.images.map((e) => e.imageUrl).where((u) => u.isNotEmpty).toList();
     if (urls.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -393,9 +370,8 @@ class PostCard extends StatelessWidget {
   Widget _buildVoteButtons(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark
-        ? Colors.grey.shade800
-        : Colors.grey.shade100;
+    final backgroundColor =
+        isDark ? Colors.grey.shade800 : Colors.grey.shade100;
 
     return Container(
       height: 36,
@@ -426,8 +402,10 @@ class PostCard extends StatelessWidget {
                 color: post.userVote == 1
                     ? context.tokens.upvote
                     : post.userVote == -1
-                    ? context.tokens.downvote
-                    : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
+                        ? context.tokens.downvote
+                        : (isDark
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade700),
               ),
             ),
           ),
@@ -525,62 +503,6 @@ class PostCard extends StatelessWidget {
   // }
 
   // ============= SHARE SHEET =============
-  void _showShareSheet(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: isDark ? Colors.grey.shade900 : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Copy Link'),
-              onTap: () {
-                Navigator.pop(context);
-                // Copy link logic
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Share via...'),
-              onTap: () {
-                Navigator.pop(context);
-                // Share logic
-              },
-            ),
-            if (onSave != null)
-              ListTile(
-                leading: Icon(
-                  Icons.bookmark_border,
-                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
-                ),
-                title: const Text('Save Post'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onSave?.call();
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _goToProfile(BuildContext context, String userId) {
     Navigator.push(

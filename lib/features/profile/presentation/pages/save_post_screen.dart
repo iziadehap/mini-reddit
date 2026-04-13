@@ -121,12 +121,16 @@ class _SavePostScreenState extends ConsumerState<SavePostScreen> {
                   },
                   onSave: () async {
                     if (post.isSaved) {
-                      ref.read(savePostProvider(post.id).notifier).unsavePost(post.id);
-                      // Let userSavedPostsProvider handle removing it from local list if desired, 
+                      ref
+                          .read(savePostProvider(post.id).notifier)
+                          .unsavePost(post.id);
+                      // Let userSavedPostsProvider handle removing it from local list if desired,
                       // or just toggle its property
                       // We'll trust the pull-to-refresh for now
                     } else {
-                      ref.read(savePostProvider(post.id).notifier).savePost(post.id);
+                      ref
+                          .read(savePostProvider(post.id).notifier)
+                          .savePost(post.id);
                     }
                     return !post.isSaved;
                   },

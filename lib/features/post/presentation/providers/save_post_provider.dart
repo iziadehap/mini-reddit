@@ -8,14 +8,13 @@ import 'package:mini_reddit_v2/features/post/domain/post_repo.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_community_posts_provider.dart';
 import 'package:mini_reddit_v2/features/post/presentation/providers/post_provider.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/providers/user_saved_posts_provider.dart';
 
 final savePostProvider =
     StateNotifierProvider.family<SavePostNotifier, bool, String>(
-      (ref, postId) =>
-          SavePostNotifier(repo: PostRepoImpl(PostDataSource()), ref: ref),
-    );
+  (ref, postId) =>
+      SavePostNotifier(repo: PostRepoImpl(PostDataSource()), ref: ref),
+);
 
 class SavePostNotifier extends StateNotifier<bool> {
   final PostRepo repo;
@@ -52,16 +51,23 @@ class SavePostNotifier extends StateNotifier<bool> {
   void _updateAllContexts(String postId, bool isSaved) {
     // 1. Update FeedProvider
     final feedNotifier = ref.read(feedProvider.notifier);
-    final feedPost = ref.read(feedProvider).feed?.where((p) => p.id == postId).firstOrNull;
+    final feedPost =
+        ref.read(feedProvider).feed?.where((p) => p.id == postId).firstOrNull;
     if (feedPost != null) {
       feedNotifier.updateFeedPostLocally(feedPost.copyWith(isSaved: isSaved));
     }
 
     // 2. Update Community Posts
-    final communityPostsNotifier = ref.read(fetchCommunityPostsProvider.notifier);
-    final communityPost = ref.read(fetchCommunityPostsProvider).value?.where((p) => p.id == postId).firstOrNull;
+    final communityPostsNotifier =
+        ref.read(fetchCommunityPostsProvider.notifier);
+    final communityPost = ref
+        .read(fetchCommunityPostsProvider)
+        .value
+        ?.where((p) => p.id == postId)
+        .firstOrNull;
     if (communityPost != null) {
-      communityPostsNotifier.updatePostLocally(communityPost.copyWith(isSaved: isSaved));
+      communityPostsNotifier
+          .updatePostLocally(communityPost.copyWith(isSaved: isSaved));
     }
 
     // 3. Update Post Details if open
@@ -106,9 +112,11 @@ class SavePostNotifier extends StateNotifier<bool> {
     // Clear the Hive cache for saved posts
     final cashService = cache_service.CashService();
     await cashService.delete(cache_service.Key.userSavedPost);
-    
+
     // Also re-fetch the saved posts provider
-    await ref.read(userSavedPostsProvider.notifier).fetchSavedPosts(forceRefresh: true);
+    await ref
+        .read(userSavedPostsProvider.notifier)
+        .fetchSavedPosts(forceRefresh: true);
   }
 }
 

@@ -134,7 +134,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 Text(
                   'Join the conversation on Mini Reddit',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.55),
+                    color: colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -169,7 +169,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         size: 20,
-                        color: colorScheme.onSurface.withOpacity(0.5),
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
@@ -184,14 +184,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     Icon(
                       Icons.info_outline_rounded,
                       size: 14,
-                      color: colorScheme.onSurface.withOpacity(0.4),
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'At least 8 characters',
                       style: TextStyle(
                         fontSize: 12,
-                        color: colorScheme.onSurface.withOpacity(0.4),
+                        color: colorScheme.onSurface.withValues(alpha: 0.4),
                       ),
                     ),
                   ],
@@ -238,7 +238,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       text: TextSpan(
                         text: 'Already have an account? ',
                         style: TextStyle(
-                          color: colorScheme.onSurface.withOpacity(0.55),
+                          color: colorScheme.onSurface.withValues(alpha: 0.55),
                           fontSize: 14,
                         ),
                         children: const [
@@ -277,7 +277,7 @@ class _InputLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
         letterSpacing: 0.3,
       ),
     );
@@ -293,15 +293,15 @@ InputDecoration _inputDecoration(
   final colorScheme = Theme.of(context).colorScheme;
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
+    hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.3)),
     prefixIcon: Icon(
       icon,
       size: 20,
-      color: colorScheme.onSurface.withOpacity(0.45),
+      color: colorScheme.onSurface.withValues(alpha: 0.45),
     ),
     suffixIcon: suffix,
     filled: true,
-    fillColor: colorScheme.onSurface.withOpacity(0.05),
+    fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
@@ -309,7 +309,8 @@ InputDecoration _inputDecoration(
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+      borderSide:
+          BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.1)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),

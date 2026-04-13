@@ -41,8 +41,8 @@ class FeedPostCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        highlightColor: tokens.brandOrange.withOpacity(0.05),
-        splashColor: tokens.brandOrange.withOpacity(0.1),
+        highlightColor: tokens.brandOrange.withValues(alpha: 0.05),
+        splashColor: tokens.brandOrange.withValues(alpha: 0.1),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

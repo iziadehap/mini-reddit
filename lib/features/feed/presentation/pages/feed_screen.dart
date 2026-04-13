@@ -13,7 +13,7 @@ import 'package:mini_reddit_v2/features/communities/presentation/screens/communi
 import 'package:mini_reddit_v2/features/communities/presentation/screens/community_screen.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_state.dart';
-import 'package:mini_reddit_v2/core/riverpod/snackBar_provider.dart';
+import 'package:mini_reddit_v2/core/riverpod/snackbar_provider.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/post_card.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/community_drawer.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/empty_feed_widget.dart';
@@ -116,6 +116,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     .removePost(postId);
                 if (mounted) {
                   final isDark =
+                      // ignore: use_build_context_synchronously
                       Theme.of(context).brightness == Brightness.dark;
                   showCustomSnackBar(
                     context,

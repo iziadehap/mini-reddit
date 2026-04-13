@@ -25,9 +25,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   Future<void> _navigateToNext() async {
     _handelThemeMode();
-    final isAlreadyLoggedIn = await ref
-        .read(authProvider.notifier)
-        .isAlreadyLoggedIn();
+    final isAlreadyLoggedIn =
+        await ref.read(authProvider.notifier).isAlreadyLoggedIn();
 
     debugPrint('🔍 isAlreadyLoggedIn: $isAlreadyLoggedIn');
 
@@ -45,9 +44,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           bool isProfileComplete = false;
           if (profile is AsyncData) {
             final userProfile = profile.value;
-            isProfileComplete =
-                userProfile?.fullName?.isNotEmpty == true &&
-                userProfile?.username?.isNotEmpty == true;
+            isProfileComplete = userProfile?.fullName?.isNotEmpty == true &&
+                userProfile?.username.isNotEmpty == true;
           } else if (profile is AsyncError) {
             debugPrint('🔍 Profile load error: ${profile.error}');
             isProfileComplete = false;
@@ -139,7 +137,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               'The front page of your feed',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.65),
+                color: Colors.white.withValues(alpha: 0.65),
                 letterSpacing: 0.2,
               ),
             ),

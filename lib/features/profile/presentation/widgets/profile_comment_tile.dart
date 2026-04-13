@@ -22,8 +22,8 @@ class ProfileCommentTile extends StatelessWidget {
       color: tokens.cardBg,
       child: InkWell(
         onTap: onTap,
-        highlightColor: tokens.brandOrange.withOpacity(0.05),
-        splashColor: tokens.brandOrange.withOpacity(0.1),
+        highlightColor: tokens.brandOrange.withValues(alpha: 0.05),
+        splashColor: tokens.brandOrange.withValues(alpha: 0.1),
         child: Container(
           decoration: BoxDecoration(
             border: Border(
@@ -68,7 +68,8 @@ class ProfileCommentTile extends StatelessWidget {
                     style: typo.voteCount,
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                     child: Text('·', style: typo.postMeta),
                   ),
                   Text(

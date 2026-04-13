@@ -58,9 +58,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     debugPrint('🔍 - username: ${_usernameController.text.trim()}');
     debugPrint('🔍 - avatarUrl: $imageUrl');
 
-    await ref
-        .read(authProvider.notifier)
-        .completeProfile(
+    await ref.read(authProvider.notifier).completeProfile(
           fullName: _fullNameController.text.trim(),
           bio: _bioController.text.trim(),
           username: _usernameController.text.trim(),
@@ -72,6 +70,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     await ref.read(authProvider.notifier).signOut();
     // go to login and remove any previous routes
     Navigator.pushAndRemoveUntil(
+      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
@@ -157,7 +156,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 Text(
                   'You can always change this later',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.5),
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -174,11 +173,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                           height: 110,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: colorScheme.onSurface.withOpacity(0.08),
+                            color:
+                                colorScheme.onSurface.withValues(alpha: 0.08),
                             border: Border.all(
                               color: _imageFile != null
                                   ? const Color(0xFFFF4500)
-                                  : colorScheme.onSurface.withOpacity(0.15),
+                                  : colorScheme.onSurface
+                                      .withValues(alpha: 0.15),
                               width: 2,
                             ),
                             image: _imageFile != null
@@ -192,7 +193,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                               ? Icon(
                                   Icons.person_outline_rounded,
                                   size: 48,
-                                  color: colorScheme.onSurface.withOpacity(0.4),
+                                  color: colorScheme.onSurface
+                                      .withValues(alpha: 0.4),
                                 )
                               : null,
                         ),
@@ -223,7 +225,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     'Tap to add photo',
                     style: TextStyle(
                       fontSize: 12,
-                      color: colorScheme.onSurface.withOpacity(0.4),
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -320,7 +322,7 @@ class _InputLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
         letterSpacing: 0.3,
       ),
     );
@@ -336,15 +338,15 @@ InputDecoration _inputDecoration(
   final colorScheme = Theme.of(context).colorScheme;
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
+    hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.3)),
     prefixIcon: Icon(
       icon,
       size: 20,
-      color: colorScheme.onSurface.withOpacity(0.45),
+      color: colorScheme.onSurface.withValues(alpha: 0.45),
     ),
     suffixIcon: suffix,
     filled: true,
-    fillColor: colorScheme.onSurface.withOpacity(0.05),
+    fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
@@ -352,7 +354,8 @@ InputDecoration _inputDecoration(
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+      borderSide:
+          BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.1)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),

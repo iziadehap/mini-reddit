@@ -26,7 +26,7 @@ class _CommunityAvatar extends StatelessWidget {
           border: Border.all(color: tokens.bgSurface, width: 4),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -65,9 +65,9 @@ class _ModeratorBadge extends StatelessWidget {
         vertical: AppSpacing.xxs + 1,
       ),
       decoration: BoxDecoration(
-        color: tokens.brandOrange.withOpacity(0.12),
+        color: tokens.brandOrange.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: tokens.brandOrange.withOpacity(0.3)),
+        border: Border.all(color: tokens.brandOrange.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

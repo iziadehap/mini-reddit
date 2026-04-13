@@ -305,7 +305,6 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
           style: const TextStyle(color: Colors.red, fontSize: 12),
         ),
       ),
-
       data: (communities) {
         debugPrint("communities: ${communities.length}");
         // final communities = communitiesAsync.value ?? [];
@@ -412,7 +411,7 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
                 vertical: 2,
               ),
               decoration: BoxDecoration(
-                color: tokens.brandOrange.withOpacity(0.1),
+                color: tokens.brandOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.full),
               ),
               child: Text(
@@ -465,7 +464,7 @@ class _CommunityDrawerState extends ConsumerState<CommunityDrawer> {
               height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: tokens.brandOrange.withOpacity(0.1),
+                color: tokens.brandOrange.withValues(alpha: 0.1),
               ),
               child: Icon(Icons.explore, size: 18, color: tokens.brandOrange),
             ),

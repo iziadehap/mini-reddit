@@ -112,8 +112,8 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
     );
     final isCommunityAdmin = communityId.isNotEmpty
         ? ref
-              .watch(isCommunityAdminProvider(communityId))
-              .maybeWhen(data: (value) => value, orElse: () => false)
+            .watch(isCommunityAdminProvider(communityId))
+            .maybeWhen(data: (value) => value, orElse: () => false)
         : false;
 
     if (widget.comments.isEmpty) {
@@ -385,7 +385,6 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -437,14 +436,13 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                                   children: [
                                     Text(
                                       comment.authorUsername,
-                                      style:
-                                          (isReply
-                                                  ? typo.titleSmall
-                                                  : typo.titleMedium)
-                                              .copyWith(
-                                                fontSize: isReply ? 13 : 14,
-                                                color: t.textPrimary,
-                                              ),
+                                      style: (isReply
+                                              ? typo.titleSmall
+                                              : typo.titleMedium)
+                                          .copyWith(
+                                        fontSize: isReply ? 13 : 14,
+                                        color: t.textPrimary,
+                                      ),
                                     ),
                                     if (isReply) const SizedBox(height: 2),
                                     Text(
@@ -469,9 +467,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                         ),
                       ],
                     ),
-
                     SizedBox(height: isReply ? 6 : AppSpacing.sm),
-
                     Text(
                       comment.content,
                       style: typo.bodyMedium.copyWith(
@@ -479,9 +475,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                         color: t.textPrimary,
                       ),
                     ),
-
                     SizedBox(height: isReply ? 6 : AppSpacing.sm),
-
                     Row(
                       children: [
                         // زر الإعجاب
@@ -589,7 +583,6 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
                         ],
                       ],
                     ),
-
                     if (isReply)
                       Container(
                         margin: const EdgeInsets.only(top: 6),
@@ -638,7 +631,7 @@ class _BuildCommentsSectionState extends ConsumerState<BuildCommentsSection> {
   //         vertical: isSmall ? 2 : 4,
   //       ),
   //       decoration: BoxDecoration(
-  //         color: isActive ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+  //         color: isActive ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent,
   //         borderRadius: BorderRadius.circular(16),
   //       ),
   //       child: Row(

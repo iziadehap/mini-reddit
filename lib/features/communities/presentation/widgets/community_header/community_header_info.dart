@@ -125,9 +125,8 @@ class _CommunityDescriptionState extends State<_CommunityDescription> {
               height: 1.5,
             ),
           ),
-          crossFadeState: _expanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
         if (isLong) ...[
@@ -170,11 +169,13 @@ class _CommunityTags extends StatelessWidget {
             vertical: AppSpacing.xxs + 1,
           ),
           decoration: BoxDecoration(
-            color: isNsfw ? tokens.error.withOpacity(0.12) : tokens.bgElevated,
+            color: isNsfw
+                ? tokens.error.withValues(alpha: 0.12)
+                : tokens.bgElevated,
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
               color: isNsfw
-                  ? tokens.error.withOpacity(0.3)
+                  ? tokens.error.withValues(alpha: 0.3)
                   : tokens.borderDefault,
             ),
           ),

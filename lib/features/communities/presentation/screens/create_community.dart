@@ -77,15 +77,14 @@ class _CreateCommunityDialogState extends ConsumerState<CreateCommunityScreen>
             .uploadCommunityImage(_selectedImage!);
       }
 
-      final res = await ref
-          .read(communitiesActionsProvider.notifier)
-          .createCommunity(
-            name: name,
-            description: _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
-            imageUrl: imageUrl,
-          );
+      final res =
+          await ref.read(communitiesActionsProvider.notifier).createCommunity(
+                name: name,
+                description: _descriptionController.text.trim().isEmpty
+                    ? null
+                    : _descriptionController.text.trim(),
+                imageUrl: imageUrl,
+              );
 
       if (res != null && res['success'] == false) {
         setState(() {
@@ -313,9 +312,8 @@ class _TopBar extends StatelessWidget {
               child: TextButton(
                 onPressed: canCreate ? onCreate : null,
                 style: TextButton.styleFrom(
-                  backgroundColor: canCreate
-                      ? _redditOrange
-                      : Colors.transparent,
+                  backgroundColor:
+                      canCreate ? _redditOrange : Colors.transparent,
                   foregroundColor: canCreate ? Colors.white : Colors.grey,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,

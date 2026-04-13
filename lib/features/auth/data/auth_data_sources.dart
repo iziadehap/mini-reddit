@@ -80,13 +80,13 @@ class AuthDataSource {
   Future<String?> requestNotificationPermission() async {
     try {
       // طلب إذن الإشعارات
-      NotificationSettings settings = await _firebaseMessaging
-          .requestPermission(
-            alert: true,
-            badge: true,
-            sound: true,
-            provisional: false,
-          );
+      NotificationSettings settings =
+          await _firebaseMessaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
 
       if (settings.authorizationStatus != AuthorizationStatus.authorized) {
         debugPrint('User declined notification permission');
@@ -139,8 +139,8 @@ class AuthDataSource {
     });
 
     // 6. التعامل مع الإشعار الذي فتح التطبيق
-    RemoteMessage? initialMessage = await FirebaseMessaging.instance
-        .getInitialMessage();
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(initialMessage.data);
     }

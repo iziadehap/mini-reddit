@@ -544,7 +544,7 @@ class _FilterChipRow extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: isActive ? tokens.brandOrange : tokens.textSecondary,
               ),
-              selectedColor: tokens.brandOrange.withOpacity(0.15),
+              selectedColor: tokens.brandOrange.withValues(alpha: 0.15),
               backgroundColor: tokens.bgElevated,
               side: BorderSide(
                 color: isActive ? tokens.brandOrange : tokens.borderDefault,
@@ -811,12 +811,12 @@ class _NotificationTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: notification.isRead
               ? tokens.bgSurface
-              : color.withOpacity(0.05),
+              : color.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: notification.isRead
                 ? Colors.transparent
-                : color.withOpacity(0.2),
+                : color.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -826,7 +826,7 @@ class _NotificationTile extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
-            splashColor: color.withOpacity(0.1),
+            splashColor: color.withValues(alpha: 0.1),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
@@ -907,7 +907,7 @@ class _NotificationTile extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: color.withOpacity(0.4),
+                            color: color.withValues(alpha: 0.4),
                             blurRadius: 4,
                             spreadRadius: 1,
                           ),
@@ -958,7 +958,7 @@ class _NotifAvatar extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: typeColor.withOpacity(0.2),
+                color: typeColor.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -966,7 +966,7 @@ class _NotifAvatar extends StatelessWidget {
           ),
           child: CircleAvatar(
             radius: 24,
-            backgroundColor: typeColor.withOpacity(0.15),
+            backgroundColor: typeColor.withValues(alpha: 0.15),
             backgroundImage: notification.actorAvatarUrl != null
                 ? NetworkImage(notification.actorAvatarUrl!)
                 : null,
@@ -994,7 +994,7 @@ class _NotifAvatar extends StatelessWidget {
               border: Border.all(color: tokens.bgSurface, width: 2.5),
               boxShadow: [
                 BoxShadow(
-                  color: typeColor.withOpacity(0.3),
+                  color: typeColor.withValues(alpha: 0.3),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -1004,28 +1004,6 @@ class _NotifAvatar extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────
-// Bottom Sheet Handle
-// ─────────────────────────────────────────────────────────
-class _BottomSheetHandle extends StatelessWidget {
-  final dynamic tokens;
-
-  const _BottomSheetHandle({required this.tokens});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 4,
-      margin: const EdgeInsets.only(top: 12, bottom: 16),
-      decoration: BoxDecoration(
-        color: tokens.borderDefault,
-        borderRadius: BorderRadius.circular(2),
-      ),
     );
   }
 }

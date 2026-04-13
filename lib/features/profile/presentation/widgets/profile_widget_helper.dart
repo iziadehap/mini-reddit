@@ -51,7 +51,7 @@ class ProfileShimmer extends StatelessWidget {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withOpacity(0.35),
+                              Colors.black.withValues(alpha: 0.35),
                             ],
                           ),
                         ),
@@ -94,7 +94,7 @@ class ProfileShimmer extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withValues(alpha: 0.35),
                               shape: BoxShape.circle,
                             ),
                           ).withShimmerAi(
@@ -110,7 +110,7 @@ class ProfileShimmer extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withValues(alpha: 0.35),
                               shape: BoxShape.circle,
                             ),
                           ).withShimmerAi(
@@ -126,7 +126,7 @@ class ProfileShimmer extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withValues(alpha: 0.35),
                               shape: BoxShape.circle,
                             ),
                           ).withShimmerAi(
@@ -247,7 +247,8 @@ class ProfileShimmer extends StatelessWidget {
                                 VerticalDivider(
                                   width: 1,
                                   thickness: 1,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                                 Expanded(
                                   child: _buildStatCellShimmer(context),
@@ -255,7 +256,8 @@ class ProfileShimmer extends StatelessWidget {
                                 VerticalDivider(
                                   width: 1,
                                   thickness: 1,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                                 Expanded(
                                   child: _buildStatCellShimmer(context),
@@ -388,12 +390,6 @@ class _ShimmerTabContent extends StatelessWidget {
 }
 
 class _StickyTabBarShimmerDelegate extends SliverPersistentHeaderDelegate {
-
-
-
-
-
-
   final Color color;
 
   const _StickyTabBarShimmerDelegate({required this.color});
@@ -461,9 +457,6 @@ class _StickyTabBarShimmerDelegate extends SliverPersistentHeaderDelegate {
       oldDelegate.color != color;
 }
 
-
-
-
 class ProfileErrorWidgetEnhanced extends StatelessWidget {
   final String errorMessage;
   final VoidCallback onRetry;
@@ -481,7 +474,7 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -496,7 +489,10 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).colorScheme.error.withOpacity(0.15),
+                      Theme.of(context)
+                          .colorScheme
+                          .error
+                          .withValues(alpha: 0.15),
                       Theme.of(context).scaffoldBackgroundColor,
                     ],
                   ),
@@ -516,7 +512,10 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -530,7 +529,6 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
               ),
             ),
           ),
-          
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -539,27 +537,30 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                   Text(
                     'Unable to Load Profile',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
-                  
+
                   Text(
                     'We encountered an issue while trying to load your profile information.',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                      height: 1.4,
-                    ),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                          height: 1.4,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Error card
                   Material(
                     elevation: 2,
-                    shadowColor: Colors.black.withOpacity(0.1),
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       width: double.infinity,
@@ -587,7 +588,8 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -598,15 +600,21 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontFamily: 'monospace',
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.8),
                             ),
                           ),
                           if (errorCode != null) ...[
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isDark ? Colors.grey[800] : Colors.grey[200],
+                                color: isDark
+                                    ? Colors.grey[800]
+                                    : Colors.grey[200],
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -614,7 +622,10 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontFamily: 'monospace',
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
                                 ),
                               ),
                             ),
@@ -624,7 +635,7 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Action buttons
                   Row(
                     children: [
@@ -650,13 +661,15 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: onReport ?? () {
-                            _showReportDialog(context);
-                          },
+                          onPressed: onReport ??
+                              () {
+                                _showReportDialog(context);
+                              },
                           icon: const Icon(Icons.feedback_rounded, size: 20),
                           label: const Text('Report'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -666,18 +679,21 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Help text
                   GestureDetector(
                     onTap: () {
                       _showHelpDialog(context);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.02),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -686,14 +702,20 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
                           Icon(
                             Icons.help_outline,
                             size: 16,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             'Need help?',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
                             ),
                           ),
                         ],
@@ -708,14 +730,15 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
       ),
     );
   }
-  
+
   void _showReportDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Report Issue'),
-          content: const Text('Would you like to report this error to our support team?'),
+          content: const Text(
+              'Would you like to report this error to our support team?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -736,7 +759,7 @@ class ProfileErrorWidgetEnhanced extends StatelessWidget {
       },
     );
   }
-  
+
   void _showHelpDialog(BuildContext context) {
     showDialog(
       context: context,

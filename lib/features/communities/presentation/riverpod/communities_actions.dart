@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_repo_impl.dart';
@@ -13,18 +12,15 @@ import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/user_communities_provider.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
 
-final communitiesActionsProvider =
-    StateNotifierProvider<
-      CommunitiesActionsNotifier,
-      AsyncValue<List<CommunityModel>>
-    >((ref) {
-      return CommunitiesActionsNotifier(
-        ref: ref,
-        communitiesRepo: CommunitiesRepoImpl(
-          communitiesDataSource: CommunitiesDataSource(),
-        ),
-      );
-    });
+final communitiesActionsProvider = StateNotifierProvider<
+    CommunitiesActionsNotifier, AsyncValue<List<CommunityModel>>>((ref) {
+  return CommunitiesActionsNotifier(
+    ref: ref,
+    communitiesRepo: CommunitiesRepoImpl(
+      communitiesDataSource: CommunitiesDataSource(),
+    ),
+  );
+});
 
 class CommunitiesActionsNotifier
     extends StateNotifier<AsyncValue<List<CommunityModel>>> {
@@ -32,7 +28,7 @@ class CommunitiesActionsNotifier
   final CommunitiesRepo communitiesRepo;
 
   CommunitiesActionsNotifier({required this.ref, required this.communitiesRepo})
-    : super(const AsyncValue.loading());
+      : super(const AsyncValue.loading());
 
   Future<void> joinCommunity(String communityId) async {
     final data = await communitiesRepo.joinCommunity(communityId);
@@ -93,7 +89,9 @@ class CommunitiesActionsNotifier
       (_) {
         // Remove the post instantly from both feed and community posts UI
         ref.read(feedProvider.notifier).removePostLocally(postId);
-        ref.read(fetchCommunityPostsProvider.notifier).removePostLocally(postId);
+        ref
+            .read(fetchCommunityPostsProvider.notifier)
+            .removePostLocally(postId);
         debugPrint('Post $postId removed successfully');
       },
     );
@@ -107,9 +105,7 @@ class CommunitiesActionsNotifier
     try {
       final imageUrl = await uploadCommunityImage(imageFile);
       if (imageUrl != null) {
-        await ref
-            .read(communityDetailsProvider.notifier)
-            .editCommunity(
+        await ref.read(communityDetailsProvider.notifier).editCommunity(
               communityId: communityId,
               name: communityName,
               imageUrl: imageUrl,
@@ -129,9 +125,7 @@ class CommunitiesActionsNotifier
     try {
       final imageUrl = await uploadCommunityImage(imageFile);
       if (imageUrl != null) {
-        await ref
-            .read(communityDetailsProvider.notifier)
-            .editCommunity(
+        await ref.read(communityDetailsProvider.notifier).editCommunity(
               communityId: communityId,
               name: communityName,
               bannerUrl: imageUrl,
@@ -148,9 +142,7 @@ class CommunitiesActionsNotifier
     String communityName,
   ) async {
     try {
-      await ref
-          .read(communityDetailsProvider.notifier)
-          .editCommunity(
+      await ref.read(communityDetailsProvider.notifier).editCommunity(
             communityId: communityId,
             name: communityName,
             imageUrl: '',
@@ -166,9 +158,7 @@ class CommunitiesActionsNotifier
     String communityName,
   ) async {
     try {
-      await ref
-          .read(communityDetailsProvider.notifier)
-          .editCommunity(
+      await ref.read(communityDetailsProvider.notifier).editCommunity(
             communityId: communityId,
             name: communityName,
             bannerUrl: '',

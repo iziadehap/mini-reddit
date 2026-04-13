@@ -141,7 +141,7 @@ class CommunitiesDataSource {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      final extension = file.path.split('.').last;
+      // final extension = file.path.split('.').last;
       final sanitizedName = file.path
           .split(Platform.pathSeparator)
           .last
@@ -356,13 +356,10 @@ class CommunitiesDataSource {
 
       debugPrint('🗑️ Deleting post $postId by setting is_deleted = true');
 
-      await _supabase
-          .from('posts')
-          .update({
-            'is_deleted': true,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', postId);
+      await _supabase.from('posts').update({
+        'is_deleted': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', postId);
 
       debugPrint('✅ Post $postId deleted in database');
     } catch (e) {

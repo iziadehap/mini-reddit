@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mini_reddit_v2/core/widgets/user_Widget.dart';
+import 'package:mini_reddit_v2/core/widgets/user_widget.dart';
 import 'package:mini_reddit_v2/features/post/presentation/pages/create_post_screen.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/pages/feed_screen.dart';
 import 'package:mini_reddit_v2/features/notifications/presentation/pages/notifications_screen.dart';

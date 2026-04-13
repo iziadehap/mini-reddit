@@ -14,7 +14,6 @@ class SettingsScreen extends ConsumerWidget {
     final profileState = ref.watch(myProfileProvider);
     final profile = profileState.value;
     final currentMode = ref.watch(themeModeProvider);
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -132,6 +131,7 @@ class _LogoutButton extends StatelessWidget {
       provider.signOut();
 
       Navigator.pushAndRemoveUntil(
+        // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
@@ -182,7 +182,7 @@ class _SectionLabel extends StatelessWidget {
         fontSize: 11,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.1,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
       ),
     );
   }
@@ -199,11 +199,11 @@ class _Card extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -221,7 +221,7 @@ class _Divider extends StatelessWidget {
       height: 1,
       thickness: 1,
       indent: 52,
-      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
     );
   }
 }
@@ -245,7 +245,8 @@ class _InfoTile extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
           const SizedBox(width: 16),
           Column(
@@ -265,7 +266,7 @@ class _InfoTile extends StatelessWidget {
                   fontSize: 12,
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.5),
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -308,7 +309,7 @@ class _ThemeOption extends StatelessWidget {
               size: 20,
               color: isSelected
                   ? scheme.onSurface
-                  : scheme.onSurface.withOpacity(0.5),
+                  : scheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -334,7 +335,7 @@ class _ThemeOption extends StatelessWidget {
                       Icons.radio_button_unchecked,
                       key: const ValueKey('uncheck'),
                       size: 20,
-                      color: scheme.onSurface.withOpacity(0.25),
+                      color: scheme.onSurface.withValues(alpha: 0.25),
                     ),
             ),
           ],

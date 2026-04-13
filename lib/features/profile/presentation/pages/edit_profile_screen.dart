@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mini_reddit_v2/core/theme/app_theme.dart';
 import 'package:mini_reddit_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:image_picker/image_picker.dart';
@@ -45,23 +44,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _pickAvatarImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null)
+    if (picked != null) {
       setState(() => _selectedAvatarImage = File(picked.path));
+    }
   }
 
   Future<void> _pickBannerImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null)
+    if (picked != null) {
       setState(() => _selectedBannerImage = File(picked.path));
+    }
   }
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
-      await ref
-          .read(profileProvider(widget.profile.id).notifier)
-          .updateProfile(
+      await ref.read(profileProvider(widget.profile.id).notifier).updateProfile(
             fullName: _displayNameController.text,
             bio: _aboutController.text,
             avatar: _selectedAvatarImage,
@@ -136,17 +135,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                     fit: BoxFit.cover,
                                   )
                                 : (widget.profile.bannerUrl != null
-                                      ? Image.network(
-                                          widget.profile.bannerUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              _defaultBanner(context),
-                                        )
-                                      : _defaultBanner(context)),
+                                    ? Image.network(
+                                        widget.profile.bannerUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            _defaultBanner(context),
+                                      )
+                                    : _defaultBanner(context)),
                           ),
                           Positioned.fill(
                             child: Container(
-                              color: Colors.black.withOpacity(0.28),
+                              color: Colors.black.withValues(alpha: 0.28),
                               child: const Center(
                                 child: Icon(
                                   Icons.add_photo_alternate_outlined,
@@ -186,14 +185,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               ).colorScheme.outline,
                               backgroundImage: _selectedAvatarImage != null
                                   ? FileImage(_selectedAvatarImage!)
-                                        as ImageProvider
+                                      as ImageProvider
                                   : (widget.profile.avatarUrl != null
-                                        ? NetworkImage(
-                                            widget.profile.avatarUrl!,
-                                          )
-                                        : null),
-                              child:
-                                  _selectedAvatarImage == null &&
+                                      ? NetworkImage(
+                                          widget.profile.avatarUrl!,
+                                        )
+                                      : null),
+                              child: _selectedAvatarImage == null &&
                                       widget.profile.avatarUrl == null
                                   ? Text(
                                       widget.profile.initials,
@@ -311,8 +309,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       Text(
                         '${_socialLinks.length}/5',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                       ),
                     ],
                   ),
@@ -385,60 +383,59 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // ─────────────────────────────────────────
 
   Widget _defaultBanner(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: Theme.of(context).brightness == Brightness.dark
-            ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
-            : [const Color(0xFFCFD8DC), const Color(0xFFB0BEC5)],
-      ),
-    ),
-  );
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                : [const Color(0xFFCFD8DC), const Color(0xFFB0BEC5)],
+          ),
+        ),
+      );
 
   Widget _stat(BuildContext context, String value, String label) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Text(
           value,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 11,
-          ),
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 11,
+              ),
         ),
       ],
     );
   }
 
   Widget _vDivider(BuildContext context) => Container(
-    height: 28,
-    width: 1,
-    color: Theme.of(context).colorScheme.outline,
-  );
+        height: 28,
+        width: 1,
+        color: Theme.of(context).colorScheme.outline,
+      );
 
   Widget _hint(BuildContext context, String text) => Text(
-    text,
-    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-      color: Theme.of(context).colorScheme.onSurface,
-    ),
-  );
+        text,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+      );
 
   InputDecoration _dec(BuildContext context, {required String hint}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InputDecoration(
       hintText: hint,
       hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
       filled: true,
       fillColor: Theme.of(context).colorScheme.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -477,24 +474,23 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Text(
           label,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
         ),
         if (suffix != null) ...[
           const SizedBox(width: 6),
           Text(
             '– $suffix',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 12,
-            ),
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 12,
+                ),
           ),
         ],
       ],

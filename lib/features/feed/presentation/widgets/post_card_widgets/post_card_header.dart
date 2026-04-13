@@ -151,40 +151,6 @@ class PostCardHeader extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
-    final tokens = context.tokens;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: tokens.bgSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Delete Post?', style: context.rTypo.titleMedium),
-        content: Text(
-          'This action cannot be undone. Are you sure you want to delete this post?',
-          style: context.rTypo.bodyMedium.copyWith(color: tokens.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: tokens.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete?.call();
-            },
-            style: TextButton.styleFrom(foregroundColor: tokens.error),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showReportSnackbar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

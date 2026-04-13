@@ -16,9 +16,7 @@ class StorageService {
       debugPrint('🔍 - Path: $path');
       debugPrint('🔍 - File: ${file.path}');
 
-      await _supabase.storage
-          .from(bucket)
-          .upload(
+      await _supabase.storage.from(bucket).upload(
             path,
             file,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
@@ -27,9 +25,8 @@ class StorageService {
       debugPrint('🔍 File uploaded successfully');
 
       // Return the public URL
-      final String publicUrl = _supabase.storage
-          .from(bucket)
-          .getPublicUrl(path);
+      final String publicUrl =
+          _supabase.storage.from(bucket).getPublicUrl(path);
 
       debugPrint('🔍 Public URL generated: $publicUrl');
       return publicUrl;

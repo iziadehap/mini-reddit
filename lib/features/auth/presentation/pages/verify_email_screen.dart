@@ -20,8 +20,8 @@ class VerifyEmailScreen extends ConsumerStatefulWidget {
 
 class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   final _otpController = TextEditingController();
-  bool _isLoading = false;
-  bool _isResending = false;
+  final _isLoading = false;
+  final _isResending = false;
 
   @override
   void dispose() {
@@ -50,6 +50,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     await ref.read(authProvider.notifier).resendEmailVerification(widget.email);
 
     // Show success message
+    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('✅ Verification code resent! Check your email.'),
@@ -61,7 +62,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    // final authState = ref.watch(authProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -115,7 +116,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(
                       Icons.arrow_back_rounded,
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -131,7 +132,8 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF4500).withOpacity(0.35),
+                          color:
+                              const Color(0xFFFF4500).withValues(alpha: 0.35),
                           blurRadius: 24,
                         ),
                       ],
@@ -161,7 +163,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     'We sent a 6-digit verification code to',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.55),
+                      color: colorScheme.onSurface.withValues(alpha: 0.55),
                     ),
                   ),
                 ),
@@ -261,15 +263,15 @@ InputDecoration inputDecoration(
   final colorScheme = Theme.of(context).colorScheme;
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
+    hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.3)),
     prefixIcon: Icon(
       icon,
       size: 20,
-      color: colorScheme.onSurface.withOpacity(0.45),
+      color: colorScheme.onSurface.withValues(alpha: 0.45),
     ),
     suffixIcon: suffix,
     filled: true,
-    fillColor: colorScheme.onSurface.withOpacity(0.05),
+    fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
@@ -277,7 +279,8 @@ InputDecoration inputDecoration(
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+      borderSide:
+          BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.1)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),

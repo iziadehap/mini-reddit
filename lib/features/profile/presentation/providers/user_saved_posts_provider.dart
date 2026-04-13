@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/profile/data/data_source.dart';
 import 'package:mini_reddit_v2/features/profile/data/profile_repo_impl.dart';
@@ -11,13 +10,10 @@ final savedPostsRepositoryProvider = Provider<ProfileRepo>((ref) {
   return ProfileRepoImpl(ProfileDataSource());
 });
 
-final userSavedPostsProvider =
-    StateNotifierProvider<
-      UserSavedPostsNotifier,
-      AsyncValue<List<FeedPostModel>>
-    >((ref) {
-      return UserSavedPostsNotifier(ref.read(savedPostsRepositoryProvider));
-    });
+final userSavedPostsProvider = StateNotifierProvider<UserSavedPostsNotifier,
+    AsyncValue<List<FeedPostModel>>>((ref) {
+  return UserSavedPostsNotifier(ref.read(savedPostsRepositoryProvider));
+});
 
 class UserSavedPostsNotifier
     extends StateNotifier<AsyncValue<List<FeedPostModel>>> {

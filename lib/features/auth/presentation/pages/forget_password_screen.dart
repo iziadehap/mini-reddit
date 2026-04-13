@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/create_new_password_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/widgets/input_label.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -16,8 +15,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  // final _formKey = GlobalKey<FormState>();
+  final _isLoading = false;
   bool _otpSent = false;
   String? _emailError;
 
@@ -66,7 +65,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    // final authState = ref.watch(authProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -134,10 +133,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(
                       Icons.arrow_back_rounded,
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.onSurface.withOpacity(0.05),
+                      backgroundColor:
+                          colorScheme.onSurface.withValues(alpha: 0.05),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -156,7 +156,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF4500).withOpacity(0.35),
+                          color:
+                              const Color(0xFFFF4500).withValues(alpha: 0.35),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -189,7 +190,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         : "Enter your email and we'll send you a reset code",
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.55),
+                      color: colorScheme.onSurface.withValues(alpha: 0.55),
                     ),
                   ),
                 ),
@@ -216,7 +217,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                   ],
                   const SizedBox(height: 32),
-
                   FilledButton(
                     onPressed: _isLoading ? null : _sendResetCode,
                     style: FilledButton.styleFrom(
@@ -248,7 +248,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -256,7 +256,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         Text(
                           'Code sent to:',
                           style: TextStyle(
-                            color: colorScheme.onSurface.withOpacity(0.6),
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
                             fontSize: 12,
                           ),
                         ),
@@ -272,7 +272,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   const InputLabel(label: 'Reset Code'),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -287,7 +286,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   TextButton(
                     onPressed: _isLoading ? null : _sendResetCode,
                     child: Text(
@@ -299,7 +297,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   FilledButton(
                     onPressed: _isLoading ? null : _verifyOTP,
                     style: FilledButton.styleFrom(

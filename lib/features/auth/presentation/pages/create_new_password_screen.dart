@@ -17,7 +17,7 @@ class _CreateNewPasswordScreenState
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -38,7 +38,6 @@ class _CreateNewPasswordScreenState
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -84,7 +83,6 @@ class _CreateNewPasswordScreenState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 60),
-
                   Center(
                     child: Container(
                       width: 80,
@@ -94,7 +92,8 @@ class _CreateNewPasswordScreenState
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF4500).withOpacity(0.35),
+                            color:
+                                const Color(0xFFFF4500).withValues(alpha: 0.35),
                             blurRadius: 24,
                             offset: const Offset(0, 8),
                           ),
@@ -108,7 +107,6 @@ class _CreateNewPasswordScreenState
                     ),
                   ),
                   const SizedBox(height: 28),
-
                   Center(
                     child: Text(
                       'Create New Password',
@@ -119,17 +117,15 @@ class _CreateNewPasswordScreenState
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   Center(
                     child: Text(
                       'Your password must be at least 6 characters',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.55),
+                        color: colorScheme.onSurface.withValues(alpha: 0.55),
                       ),
                     ),
                   ),
                   const SizedBox(height: 48),
-
                   const InputLabel(label: 'New Password'),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -154,7 +150,7 @@ class _CreateNewPasswordScreenState
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
                           size: 20,
-                          color: colorScheme.onSurface.withOpacity(0.5),
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         onPressed: () => setState(
                           () => _obscurePassword = !_obscurePassword,
@@ -163,7 +159,6 @@ class _CreateNewPasswordScreenState
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   const InputLabel(label: 'Confirm Password'),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -188,7 +183,7 @@ class _CreateNewPasswordScreenState
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
                           size: 20,
-                          color: colorScheme.onSurface.withOpacity(0.5),
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         onPressed: () => setState(
                           () => _obscureConfirmPassword =
@@ -198,7 +193,6 @@ class _CreateNewPasswordScreenState
                     ),
                   ),
                   const SizedBox(height: 32),
-
                   FilledButton(
                     onPressed: _isLoading ? null : _updatePassword,
                     style: FilledButton.styleFrom(

@@ -89,7 +89,7 @@ class _EditCommunitySheetState extends ConsumerState<EditCommunitySheet> {
     final tokens = context.tokens;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    ref.listen(SuccessEditCommunityProvider, (previous, next) {
+    ref.listen(successEditCommunityProvider, (previous, next) {
       if (next != null) {
         showCustomSnackBar(
           context,
@@ -241,10 +241,10 @@ class _EditCommunitySheetState extends ConsumerState<EditCommunitySheet> {
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          color: tokens.error.withOpacity(0.10),
+                          color: tokens.error.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(AppRadius.md),
                           border: Border.all(
-                            color: tokens.error.withOpacity(0.3),
+                            color: tokens.error.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -437,16 +437,16 @@ class _ToggleRow extends StatelessWidget {
     final color = activeColor ?? tokens.brandOrange;
     return Container(
       decoration: BoxDecoration(
-        color: value ? color.withOpacity(0.07) : tokens.bgElevated,
+        color: value ? color.withValues(alpha: 0.07) : tokens.bgElevated,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: value ? color.withOpacity(0.3) : tokens.borderDefault,
+          color: value ? color.withValues(alpha: 0.3) : tokens.borderDefault,
         ),
       ),
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeColor: color,
+        // activeColor: color,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.xs,
@@ -455,7 +455,7 @@ class _ToggleRow extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: value ? color.withOpacity(0.12) : tokens.bgSurface,
+            color: value ? color.withValues(alpha: 0.12) : tokens.bgSurface,
             shape: BoxShape.circle,
           ),
           child: Icon(

@@ -19,7 +19,7 @@ class ProfileDataSource {
 
   // Get profile
   Future<UserProfileModel> getProfile(String userId) async {
-    print('Fetching profile for user: $userId');
+    debugPrint('Fetching profile for user: $userId');
     final response = await _supabase.rpc(
       'get_user_profile',
       params: {
@@ -147,13 +147,11 @@ class ProfileDataSource {
         needToCash = false;
       }
     }
-    
-    if (response == null) {
-      response = await Supabase.instance.client.rpc(
-        'get_saved_posts',
-        params: {'p_user_id': userId, 'p_limit': limit, 'p_offset': offset},
-      );
-    }
+
+    response ??= await Supabase.instance.client.rpc(
+      'get_saved_posts',
+      params: {'p_user_id': userId, 'p_limit': limit, 'p_offset': offset},
+    );
 
     if (response == null) return [];
 

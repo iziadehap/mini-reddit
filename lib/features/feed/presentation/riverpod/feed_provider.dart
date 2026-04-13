@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_communities_provider.dart';
@@ -9,10 +8,8 @@ import 'package:mini_reddit_v2/features/feed/data/DataSource/feed_data_source.da
 import 'package:mini_reddit_v2/features/feed/data/feed_repo_impl.dart';
 import 'package:mini_reddit_v2/features/feed/domain/feed_repo.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_state.dart';
-import 'package:mini_reddit_v2/core/riverpod/snackBar_provider.dart';
+import 'package:mini_reddit_v2/core/riverpod/snackbar_provider.dart';
 import 'package:mini_reddit_v2/features/post/data/post_data_source.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/enum.dart';
 import 'package:mini_reddit_v2/features/post/data/post_repo_impl.dart';
 import 'package:mini_reddit_v2/features/post/domain/post_repo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

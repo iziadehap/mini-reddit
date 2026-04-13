@@ -226,10 +226,10 @@ class PostDataSource {
             .limit(1);
 
         if (postRows.isNotEmpty) {
-          final communityId =
-              Map<String, dynamic>.from(
+          final communityId = Map<String, dynamic>.from(
                 postRows.first,
-              )['community_id']?.toString() ??
+              )['community_id']
+                  ?.toString() ??
               '';
 
           if (communityId.isNotEmpty) {
@@ -241,10 +241,10 @@ class PostDataSource {
                 .limit(1);
 
             if (memberRows.isNotEmpty) {
-              final role =
-                  Map<String, dynamic>.from(
+              final role = Map<String, dynamic>.from(
                     memberRows.first,
-                  )['role']?.toString() ??
+                  )['role']
+                      ?.toString() ??
                   '';
               canDelete = role == 'admin';
             }
