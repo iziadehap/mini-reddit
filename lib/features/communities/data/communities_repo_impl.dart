@@ -8,7 +8,7 @@ class CommunitiesRepoImpl implements CommunitiesRepo {
   final CommunitiesDataSource _communitiesDataSource;
 
   CommunitiesRepoImpl({required CommunitiesDataSource communitiesDataSource})
-    : _communitiesDataSource = communitiesDataSource;
+      : _communitiesDataSource = communitiesDataSource;
 
   // Community Management Implementation
   @override

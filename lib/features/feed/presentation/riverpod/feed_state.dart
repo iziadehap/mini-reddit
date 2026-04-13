@@ -72,9 +72,6 @@ class FeedState {
         feedType: FeedType.popular,
         timeframe: TopFeedTimeframe.day,
         selectedCommunityName: null,
-        communities: [],
-        userCommunities: [],
-        isCommunitiesLoading: false,
-        communitiesError: null,
+        
       );
 }

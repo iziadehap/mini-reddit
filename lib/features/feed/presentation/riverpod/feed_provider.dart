@@ -84,7 +84,7 @@ class FeedNotifier extends StateNotifier<FeedState> {
       state = state.copyWith(feed: updatedFeed);
     }
   }
-  
+
   void updateFeedPostLocally(FeedPostModel updatedPost) {
     if (state.feed == null) return;
 

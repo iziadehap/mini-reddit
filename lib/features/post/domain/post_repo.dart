@@ -5,7 +5,7 @@ import 'package:mini_reddit_v2/core/models/models.dart';
 abstract class PostRepo {
   Future<Either<Failure, SuccessModel>> savePost(String postId);
   Future<Either<Failure, SuccessModel>> unsavePost(String postId);
-  
+
   Future<Either<Failure, FeedPostModel>> createPost({
     required String communityId,
     required String title,

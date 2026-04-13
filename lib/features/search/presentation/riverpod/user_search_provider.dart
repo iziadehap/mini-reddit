@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/features/search/data/user_search_data_source.dart';
 import 'package:mini_reddit_v2/features/search/data/user_search_repo_impl.dart';
 import 'package:mini_reddit_v2/features/search/domain/user_search_repo.dart';

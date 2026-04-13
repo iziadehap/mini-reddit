@@ -77,7 +77,7 @@ class _PostImagesCarouselState extends State<PostImagesCarousel> {
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  errorBuilder: (_, _, _) => Container(
+                  errorBuilder: (_, __, ___) => Container(
                     color: tokens.bgElevated,
                     alignment: Alignment.center,
                     child: Icon(

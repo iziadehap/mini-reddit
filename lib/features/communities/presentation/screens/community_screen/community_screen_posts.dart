@@ -27,30 +27,34 @@ extension _CommunityScreenPosts on _CommunityScreenState {
                 child: FeedPostCard(
                   post: post,
                   onTap: () => _navigateToPost(post.id),
-                  onUpvote: () => ref
-                      .read(fetchCommunityPostsProvider.notifier)
-                      .votePost(
-                        postId: post.id,
-                        value: 1,
-                        authorId: post.authorId,
-                      ),
-                  onDownvote: () => ref
-                      .read(fetchCommunityPostsProvider.notifier)
-                      .votePost(
-                        postId: post.id,
-                        value: -1,
-                        authorId: post.authorId,
-                      ),
+                  onUpvote: () =>
+                      ref.read(fetchCommunityPostsProvider.notifier).votePost(
+                            postId: post.id,
+                            value: 1,
+                            authorId: post.authorId,
+                          ),
+                  onDownvote: () =>
+                      ref.read(fetchCommunityPostsProvider.notifier).votePost(
+                            postId: post.id,
+                            value: -1,
+                            authorId: post.authorId,
+                          ),
                   onComment: () => _navigateToPost(post.id),
                   onDelete: canDelete ? () => _handleDelete(post.id) : null,
                   onShare: () => _copyPostLink(post.id),
                   onSave: () async {
                     if (post.isSaved) {
-                      ref.read(savePostProvider(post.id).notifier).unsavePost(post.id);
+                      ref
+                          .read(savePostProvider(post.id).notifier)
+                          .unsavePost(post.id);
                     } else {
-                      ref.read(savePostProvider(post.id).notifier).savePost(post.id);
+                      ref
+                          .read(savePostProvider(post.id).notifier)
+                          .savePost(post.id);
                     }
-                    ref.read(fetchCommunityPostsProvider.notifier).updatePostLocally(post.toggleSave());
+                    ref
+                        .read(fetchCommunityPostsProvider.notifier)
+                        .updatePostLocally(post.toggleSave());
                     return !post.isSaved;
                   },
                 ),
@@ -60,7 +64,7 @@ extension _CommunityScreenPosts on _CommunityScreenState {
         },
         loading: () => SliverList(
           delegate: SliverChildBuilderDelegate(
-            (_, _) => const Padding(
+            (_, __) => const Padding(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: SkeletonLoader(height: 200),
             ),
@@ -77,7 +81,7 @@ extension _CommunityScreenPosts on _CommunityScreenState {
       ),
       orElse: () => SliverList(
         delegate: SliverChildBuilderDelegate(
-          (_, _) => const Padding(
+          (_, __) => const Padding(
             padding: EdgeInsets.symmetric(vertical: 4),
             child: SkeletonLoader(height: 200),
           ),

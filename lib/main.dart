@@ -20,8 +20,8 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 /// Set in [main] when app opens from a quit state via notification (navigator not ready yet).
 String? pendingNotificationPostId;
 
-import 'core/services/supabase_services.dart';
-import 'core/theme/theme_provider.dart';
+// import 'core/services/supabase_services.dart';
+// import 'core/theme/theme_provider.dart';
 
 void main() async {
   // test acc
@@ -72,8 +72,8 @@ void main() async {
   // معالج الإشعار اللي فتح التطبيق (التطبيق كان مقفول)
   // ============================================
   if (!kIsWeb) {
-    RemoteMessage? initialMessage = await FirebaseMessaging.instance
-        .getInitialMessage();
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       final postId = initialMessage.data['post_id'] as String?;
       if (postId != null && postId.isNotEmpty) {
@@ -135,7 +135,8 @@ class _MyAppState extends ConsumerState<MyApp> {
   void _handleDeepLink(Uri uri) {
     debugPrint('Got Deep Link: $uri');
     if (uri.scheme == 'mini-reddit' && uri.host == 'post') {
-      final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+      final postId =
+          uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
       if (postId != null && postId.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _pushPostDetails(postId);

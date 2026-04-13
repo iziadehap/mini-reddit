@@ -102,7 +102,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             automaticallyImplyLeading: false,
             actions: [
               _iconBtn(Icons.search, () {}),
-
               _iconBtn(Icons.refresh, () {
                 final userId = profile.id;
                 final tabIndex = _tabController.index;
@@ -200,7 +199,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                             Expanded(
                               child: Text(
                                 profile.displayName,
-                                style: Theme.of(context).textTheme.headlineSmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 24,
@@ -316,7 +317,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           // ─────────────────────────────────────────────────────────────────
           SliverPersistentHeader(
             pinned: true,
-
             delegate: _StickyTabBarDelegate(
               tabBar: TabBar(
                 controller: _tabController,
@@ -344,7 +344,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
         ];
       },
-
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -361,17 +360,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _defaultBanner() => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Theme.of(context).colorScheme.onSurface,
-          Theme.of(context).colorScheme.onSurface,
-        ],
-      ),
-    ),
-  );
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.onSurface,
+              Theme.of(context).colorScheme.onSurface,
+            ],
+          ),
+        ),
+      );
 
   /// Avatar with white border ring — exactly like Reddit
   Widget _buildAvatar(UserProfileModel profile) {
@@ -386,9 +385,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       child: CircleAvatar(
         radius: _avatarRadius,
         backgroundColor: const Color(0xFF818384),
-        backgroundImage: profile.avatarUrl != null
-            ? NetworkImage(profile.avatarUrl!)
-            : null,
+        backgroundImage:
+            profile.avatarUrl != null ? NetworkImage(profile.avatarUrl!) : null,
         child: profile.avatarUrl == null
             ? Text(
                 profile.initials,
@@ -441,9 +439,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Text(
                 item.value,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17,
-                ),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 17,
+                    ),
               ),
             ],
           ),
@@ -461,15 +459,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _iconBtn(IconData icon, VoidCallback onTap) => IconButton(
-    icon: Icon(icon, size: 22),
-    onPressed: onTap,
-    style: IconButton.styleFrom(
-      backgroundColor: Colors.black.withOpacity(0.35),
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.all(8),
-      minimumSize: const Size(36, 36),
-    ),
-  );
+        icon: Icon(icon, size: 22),
+        onPressed: onTap,
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.black.withOpacity(0.35),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(36, 36),
+        ),
+      );
 
   // ───────────────────────────────────────────────────────────────────────────
   // Tabs
@@ -534,7 +532,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: 80),
               itemCount: posts.length,
-              separatorBuilder: (_, _) => const SizedBox.shrink(),
+              separatorBuilder: (_, __) => const SizedBox.shrink(),
               itemBuilder: (context, index) {
                 final post = posts[index];
                 return FeedPostCard(
@@ -725,9 +723,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 12,
-                ),
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 12,
+                    ),
               ),
               const SizedBox(height: 2),
               Text(

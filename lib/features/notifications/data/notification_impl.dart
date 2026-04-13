@@ -48,5 +48,4 @@ class NotificationImpl implements NotificationRepo {
   }) {
     return _notificationDataSource.removeNotification(notificationId);
   }
-
 }

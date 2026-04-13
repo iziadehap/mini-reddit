@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
 import 'package:mini_reddit_v2/core/widgets/skeleton_loader.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
-import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fatch_communities_provider.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_communities_provider.dart';
+// import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fatch_communities_provider.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/screens/community_screen.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/riverpod/search_provider.dart';
 import 'package:mini_reddit_v2/features/feed/presentation/widgets/post_card.dart';
@@ -162,6 +164,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final query = ref.watch(searchQueryProvider);
     _searchController.text = query;
 
@@ -226,9 +229,9 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
                 icon: Icon(Icons.groups_outlined, size: 18)),
             Tab(text: 'Users', icon: Icon(Icons.person_outline, size: 18)),
           ],
-          labelColor: RedditConstants.orange,
+          labelColor: t.brandOrange,
           unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-          indicatorColor: RedditConstants.orange,
+          indicatorColor: t.brandOrange,
         ),
       ),
       body: TabBarView(
@@ -243,6 +246,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
   }
 
   Widget _buildPostsTab() {
+    final t = context.tokens;
     final searchState = ref.watch(searchProvider);
     final query = ref.watch(searchQueryProvider);
 
@@ -278,13 +282,12 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
       itemBuilder: (context, index) {
         if (index == posts.length) {
           return searchState.isLoadMore
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(RedditConstants.orange),
+                      valueColor: AlwaysStoppedAnimation<Color>(t.brandOrange),
                     ),
                   ),
                 )
@@ -333,7 +336,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      CommunityScreen(communityName: community.name),
+                      CommunityScreen(communityId: community.id),
                 ),
               ),
               child: Padding(
@@ -403,6 +406,7 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
   }
 
   Widget _buildUsersTab() {
+    final t = context.tokens;
     final userState = ref.watch(userSearchProvider);
     final query = ref.watch(searchQueryProvider);
 
@@ -437,13 +441,12 @@ class _UnifiedSearchScreenState extends ConsumerState<UnifiedSearchScreen>
       itemBuilder: (context, index) {
         if (index == userState.users.length) {
           return userState.isLoadMore
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(RedditConstants.orange),
+                      valueColor: AlwaysStoppedAnimation<Color>(t.brandOrange),
                     ),
                   ),
                 )

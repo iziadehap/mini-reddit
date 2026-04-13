@@ -170,18 +170,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Future<bool> _handleSave(String postId) async {
-    final post = ref
-        .read(feedProvider)
-        .feed
-        ?.firstWhere((post) => post.id == postId);
+    final post =
+        ref.read(feedProvider).feed?.firstWhere((post) => post.id == postId);
     if (post == null) return false;
-    
+
     if (post.isSaved) {
       ref.read(savePostProvider(postId).notifier).unsavePost(postId);
     } else {
       ref.read(savePostProvider(postId).notifier).savePost(postId);
     }
-    
+
     ref.read(feedProvider.notifier).updateFeedPostLocally(post.toggleSave());
     return !post.isSaved;
   }
@@ -285,8 +283,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  CommunityScreen(communityName: communityName),
+              builder: (context) => CommunityScreen(communityId: communityName),
             ),
           );
         },
@@ -310,7 +307,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             onUpvote: () => _handleVote(post.id, 1),
             onDownvote: () => _handleVote(post.id, -1),
             onComment: () => _navigateToPostDetails(post.id),
-            onDelete: () => _handleDeletePost(post.id),
+            // onDelete: () => _handleDeletePost(post.id),
             onSave: () => _handleSave(post.id),
             onDelete:
                 post.authorId == Supabase.instance.client.auth.currentUser?.id
