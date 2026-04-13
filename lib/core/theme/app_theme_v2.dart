@@ -59,7 +59,7 @@ abstract final class _Palette {
 // ────────────────────────────────────────────────────────────
 // 2. SPACING & RADIUS TOKENS  (static, not theme-dependent)
 // ────────────────────────────────────────────────────────────
-abstract final class AppSpacing {
+abstract final class ppSpacing {
   static const double xxs = 2;
   static const double xs = 4;
   static const double sm = 8;
@@ -78,6 +78,18 @@ abstract final class AppRadius {
   static const double lg = 16;
   static const double xl = 20;
   static const double full = 9999;
+}
+
+abstract final class AppSpacing {
+  static const double xxs = 2;
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 20;
+  static const double xxl = 24;
+  static const double xxxl = 32;
+  static const double huge = 48;
 }
 
 // ────────────────────────────────────────────────────────────

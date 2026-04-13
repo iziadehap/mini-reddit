@@ -1,14 +1,48 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/utils/supabase_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PostDataSource {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // إنشاء منشور جديد في مجتمع
-
   // todo : handel this , this can better than this (create_post)
+
+  Future<SuccessModel> savePost(String postId) async {
+    final currentUserId = _supabase.auth.currentUser?.id;
+
+    if (currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final response = await _supabase.rpc(
+      'save_post',
+      params: {'p_post_id': postId, 'p_user_id': currentUserId},
+    );
+
+    return SuccessModel.fromJson(response);
+  }
+
+  // ============================================
+  // UNSAVE POST
+  // ============================================
+
+  Future<SuccessModel> unsavePost(String postId) async {
+    final currentUserId = _supabase.auth.currentUser?.id;
+
+    if (currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final response = await _supabase.rpc(
+      'unsave_post',
+      params: {'p_post_id': postId, 'p_user_id': currentUserId},
+    );
+
+    return SuccessModel.fromJson(response);
+  }
 
   Future<FeedPostModel> createPost({
     required String communityId,
@@ -61,7 +95,7 @@ class PostDataSource {
         throw Exception(responseMap['message']);
       }
     } catch (e) {
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       throw Exception('Failed to create post: $e');
     }
   }
@@ -75,7 +109,7 @@ class PostDataSource {
       params: {'p_post_id': postId, 'p_current_user_id': userId},
     );
 
-    print('post details data from data source: $response');
+    // debugPrint('post details data from data source: $response');
 
     // Check if response is a list and has items
     if (response is List && response.isNotEmpty) {
@@ -99,7 +133,7 @@ class PostDataSource {
       },
     );
 
-    // print('Vote comment response: $response');
+    // debugPrint('Vote comment response: $response');
     return response;
   }
 
@@ -131,7 +165,7 @@ class PostDataSource {
         if (parentId != null) 'p_parent_id': parentId,
       },
     );
-    print('Add comment response: $res');
+    debugPrint('Add comment response: $res');
   }
 
   Future<List<String>> uploadPostImage(List<File> imageFiles) async {
@@ -145,18 +179,18 @@ class PostDataSource {
         final path = '$userId/$fileName';
 
         await Supabase.instance.client.storage
-            .from('post_images')
+            .from(SupabaseText.postImageBuckets)
             .upload(path, file);
 
         return Supabase.instance.client.storage
-            .from('post_images')
+            .from(SupabaseText.postImageBuckets)
             .getPublicUrl(path);
       }).toList();
 
       final List<String> imageUrls = await Future.wait(uploadTasks);
       return imageUrls;
     } catch (e) {
-      print('Error uploading image: $e');
+      debugPrint('Error uploading image: $e');
       return [];
     }
   }
@@ -167,6 +201,61 @@ class PostDataSource {
     required String userId,
   }) async {
     try {
+      final commentRows = await _supabase
+          .from('comments')
+          .select('user_id, post_id')
+          .eq('id', commentId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+      if (commentRows.isEmpty) {
+        throw Exception('Comment not found');
+      }
+
+      final comment = Map<String, dynamic>.from(commentRows.first);
+      final commentOwnerId = comment['user_id']?.toString() ?? '';
+      final postId = comment['post_id']?.toString() ?? '';
+
+      var canDelete = commentOwnerId == userId;
+
+      if (!canDelete && postId.isNotEmpty) {
+        final postRows = await _supabase
+            .from('posts')
+            .select('community_id')
+            .eq('id', postId)
+            .limit(1);
+
+        if (postRows.isNotEmpty) {
+          final communityId =
+              Map<String, dynamic>.from(
+                postRows.first,
+              )['community_id']?.toString() ??
+              '';
+
+          if (communityId.isNotEmpty) {
+            final memberRows = await _supabase
+                .from('community_members')
+                .select('role')
+                .eq('community_id', communityId)
+                .eq('user_id', userId)
+                .limit(1);
+
+            if (memberRows.isNotEmpty) {
+              final role =
+                  Map<String, dynamic>.from(
+                    memberRows.first,
+                  )['role']?.toString() ??
+                  '';
+              canDelete = role == 'admin';
+            }
+          }
+        }
+      }
+
+      if (!canDelete) {
+        throw Exception('You are not allowed to delete this comment');
+      }
+
       final response = await _supabase
           .from('comments')
           .update({
@@ -174,12 +263,12 @@ class PostDataSource {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', commentId)
-          .eq('user_id', userId)
           .select();
-      print('Delete response: $response');
+
+      debugPrint('Delete response: $response');
       return response;
     } catch (e) {
-      print('Error deleting comment: $e');
+      debugPrint('Error deleting comment: $e');
       rethrow;
     }
   }

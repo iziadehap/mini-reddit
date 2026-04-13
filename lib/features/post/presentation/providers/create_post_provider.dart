@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/features/post/data/post_data_source.dart';
 import 'package:mini_reddit_v2/features/post/data/post_repo_impl.dart';
 import 'package:mini_reddit_v2/features/post/domain/post_repo.dart';
@@ -29,37 +29,35 @@ class CreatePostProvider extends StateNotifier<AsyncValue> {
   }) async {
     state = const AsyncValue.loading();
     List<String>? imageUrls;
-    bool isImagesUploaded = false;
-    if (imageFiles != null) {
-      imageUrls = await _uplodePostImage(imageFiles);
-      if (imageUrls != null && imageUrls.isNotEmpty) {
-        isImagesUploaded = true;
+
+    final files = imageFiles ?? [];
+    if (files.isNotEmpty) {
+      imageUrls = await _uploadPostImage(files);
+      if (imageUrls == null || imageUrls.isEmpty) {
+        // Failure: _uploadPostImage already set AsyncValue.error on upload error.
+        if (!state.hasError) {
+          setError('Failed to upload images', StackTrace.current);
+        }
+        return;
       }
     }
 
-    if (isImagesUploaded) {
-      await _createPost(
-        communityId: communityId,
-        title: title,
-        content: content,
-        flairId: flairId,
-        imageUrls: imageUrls,
-      );
-    } else {
-      setError("Failed to upload images", StackTrace.current);
-    }
+    await _createPost(
+      communityId: communityId,
+      title: title,
+      content: content,
+      flairId: flairId,
+      imageUrls: imageUrls,
+    );
   }
 
-  Future<List<String>?> _uplodePostImage(List<File> imageFiles) async {
+  Future<List<String>?> _uploadPostImage(List<File> imageFiles) async {
     List<String>? imageUrls;
     final data = await _postRepo.uploadPostImage(imageFiles);
-    data.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (urls) {
-        imageUrls = urls;
-      },
-    );
+    data.fold((failure) {
+      setSnackbarError(failure.message);
+      state = AsyncValue.error(failure.message, StackTrace.current);
+    }, (urls) => imageUrls = urls);
     return imageUrls;
   }
 

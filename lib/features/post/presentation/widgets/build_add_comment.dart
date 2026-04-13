@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/features/post/presentation/providers/post_provider.dart';
 
 class BuildAddComment extends ConsumerStatefulWidget {
@@ -52,7 +53,7 @@ class _BuildAddCommentState extends ConsumerState<BuildAddComment> {
           .read(postProvider.notifier)
           .addComment(
             content,
-            widget.replyingToId, // null للتعليقات العادية، معرف للردود
+            widget.replyingToId,
           );
       _commentController.clear();
       FocusScope.of(context).unfocus();
@@ -65,49 +66,54 @@ class _BuildAddCommentState extends ConsumerState<BuildAddComment> {
   @override
   Widget build(BuildContext context) {
     final postState = ref.watch(postProvider);
-    final theme = Theme.of(context);
+    final t = context.tokens;
+    final typo = context.rTypo;
+
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      borderSide: BorderSide(color: t.borderDefault),
+    );
 
     return Container(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: t.bgSurface,
         boxShadow: [
           BoxShadow(
             offset: const Offset(0, -2),
             blurRadius: 4,
-            color: Colors.black.withOpacity(0.05),
+            color: t.bgOverlay.withValues(alpha: 0.12),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // مؤشر الرد (إذا كنا نرد على تعليق)
           if (widget.replyingToId != null && widget.replyingToUsername != null)
             Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blue.shade200),
+                color: t.bgElevated,
+                borderRadius: BorderRadius.circular(AppRadius.full),
+                border: Border.all(color: t.borderFocused),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.reply, size: 16, color: Colors.blue),
-                  const SizedBox(width: 8),
+                  Icon(Icons.reply, size: 16, color: t.brandOrange),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'Replying to @${widget.replyingToUsername}',
-                      style: TextStyle(
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: typo.labelMedium.copyWith(color: t.textPrimary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: Icon(Icons.close, size: 18, color: t.textSecondary),
                     onPressed: widget.onCancelReply,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -115,47 +121,55 @@ class _BuildAddCommentState extends ConsumerState<BuildAddComment> {
                 ],
               ),
             ),
-
-          // حقل الإدخال
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _commentController,
                   focusNode: _focusNode,
+                  style: typo.bodyMedium.copyWith(color: t.textPrimary),
                   decoration: InputDecoration(
                     hintText: widget.replyingToId != null
                         ? 'Write your reply...'
                         : 'Add a comment...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
+                    filled: true,
+                    fillColor: t.bgInput,
+                    border: border,
+                    enabledBorder: border,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                      borderSide:
+                          BorderSide(color: t.borderFocused, width: 1.5),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: AppSpacing.lg,
                       vertical: 10,
                     ),
+                    hintStyle:
+                        typo.bodyMedium.copyWith(color: t.textSecondary),
                   ),
                   onSubmitted: (_) => _submitComment(),
                   maxLines: null,
                   textInputAction: TextInputAction.send,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               postState.isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 40,
                       height: 40,
                       child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: t.brandOrange,
+                        ),
                       ),
                     )
-                  : Container(
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
+                  : Material(
+                      color: t.brandOrange,
+                      shape: const CircleBorder(),
                       child: IconButton(
-                        icon: const Icon(Icons.send, color: Colors.white),
+                        icon: Icon(Icons.send, color: t.buttonPrimaryText),
                         onPressed: _submitComment,
                       ),
                     ),

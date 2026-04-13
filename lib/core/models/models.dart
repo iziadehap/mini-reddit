@@ -14,4 +14,5 @@ export 'community_details.dart';
 export 'feed_post.dart';
 export 'post_details.dart';
 export 'comment.dart';
+export 'user_profile_comment.dart';
 export 'notification.dart';export 'enum.dart';

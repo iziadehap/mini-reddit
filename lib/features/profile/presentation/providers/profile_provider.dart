@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/profile/data/data_source.dart';
 import 'package:mini_reddit_v2/features/profile/data/profile_repo_impl.dart';
@@ -40,7 +40,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfileModel>> {
       state = const AsyncValue.loading();
     }
 
-    final response = await _repo.getProfile();
+    final response = await _repo.getProfile(_userId);
     response.fold(
       (l) => state = AsyncValue.error(l.message, StackTrace.current),
       (r) => state = AsyncValue.data(r),
@@ -52,6 +52,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfileModel>> {
     String? fullName,
     String? bio,
     File? avatar,
+    File? banner,
   }) async {
     state = const AsyncValue.loading();
     final response = await _repo.updateProfile(
@@ -60,6 +61,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfileModel>> {
       fullName: fullName,
       bio: bio,
       avatar: avatar,
+      banner: banner,
     );
     response.fold(
       (l) => state = AsyncValue.error(l.message, StackTrace.current),

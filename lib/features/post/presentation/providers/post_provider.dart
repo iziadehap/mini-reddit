@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/post/data/post_data_source.dart';
 import 'package:mini_reddit_v2/features/post/data/post_repo_impl.dart';
@@ -77,7 +78,7 @@ class PostProvider extends StateNotifier<PostState> {
   Future<void> votePost({required String postId, required int value}) async {
     if (_currentPost == null || _currentPost!.id != postId) return;
     if (state.isVoting) {
-      print('⏳ Already voting, ignoring...');
+      debugPrint('⏳ Already voting, ignoring...');
       return;
     }
     if (_userId == null) {
@@ -92,7 +93,7 @@ class PostProvider extends StateNotifier<PostState> {
     _applyLocalPostVote(value);
     state = state.copyWith(isVoting: true);
 
-    print('📤 vote post: $postId value: $value');
+    debugPrint('📤 vote post: $postId value: $value');
 
     final result = await _postRepo.votePost(
       userId: _userId!,
@@ -102,14 +103,14 @@ class PostProvider extends StateNotifier<PostState> {
 
     result.fold(
       (failure) {
-        print('❌ vote post failed: $failure');
+        debugPrint('❌ vote post failed: $failure');
         // التراجع عن التحديث المحلي
         state = state.copyWith(post: originalPost, isVoting: false);
         if (originalPost != null) onPostUpdated?.call(originalPost);
         _setError(failure.toString());
       },
       (success) {
-        print('✅ vote post success!');
+        debugPrint('✅ vote post success!');
 
         if (success.data != null && success.data!['new_score'] != null) {
           final newScore = (success.data!['new_score'] as num).toInt();
@@ -213,7 +214,7 @@ class PostProvider extends StateNotifier<PostState> {
     required int value,
   }) async {
     if (state.isVoting) {
-      print('⏳ Already voting, ignoring...');
+      debugPrint('⏳ Already voting, ignoring...');
       return;
     }
     if (_userId == null) {
@@ -225,7 +226,7 @@ class PostProvider extends StateNotifier<PostState> {
     _applyLocalCommentVote(commentId, value);
     state = state.copyWith(isVoting: true);
 
-    print('📤 vote comment: $commentId value: $value');
+    debugPrint('📤 vote comment: $commentId value: $value');
 
     final result = await _postRepo.voteComment(
       userId: _userId!,
@@ -235,12 +236,12 @@ class PostProvider extends StateNotifier<PostState> {
 
     result.fold(
       (failure) {
-        print('❌ vote failed: $failure');
+        debugPrint('❌ vote failed: $failure');
         state = state.copyWith(post: originalPost, isVoting: false);
         _setError(failure.toString());
       },
       (success) {
-        print('✅ vote success!');
+        debugPrint('✅ vote success!');
 
         // ✅ استخدام success.data بدلاً من response.data
         if (success.data != null) {

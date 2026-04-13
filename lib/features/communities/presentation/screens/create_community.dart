@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/communities_actions.dart';
-import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
 
 class CreateCommunityScreen extends ConsumerStatefulWidget {
   const CreateCommunityScreen({super.key});
@@ -286,15 +286,22 @@ class _TopBar extends StatelessWidget {
           ),
           // Title
           Expanded(
-            child: Text(
-              'Create Community',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(AssetsUtils.emojiLaughing, width: 18, height: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Create Community',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
             ),
           ),
           // Create button
@@ -345,7 +352,7 @@ class _TopBar extends StatelessWidget {
 }
 
 class _AvatarPicker extends StatelessWidget {
-  _AvatarPicker({
+  const _AvatarPicker({
     required this.context,
     // required this.isDark,
     required this.selectedImage,
@@ -471,7 +478,7 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _NameField extends StatelessWidget {
-  _NameField({
+  const _NameField({
     required this.controller,
     required this.context,
     required this.onChanged,
@@ -622,10 +629,10 @@ class _ErrorBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF4500).withOpacity(0.1),
+        color: const Color(0xFFFF4500).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFFF4500).withOpacity(0.3),
+          color: const Color(0xFFFF4500).withValues(alpha: 0.3),
           width: 1,
         ),
       ),

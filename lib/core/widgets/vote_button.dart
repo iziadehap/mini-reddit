@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 
 class PostVoteButton extends StatelessWidget {
   final PostDetailsModel post;
@@ -170,6 +171,7 @@ class CommentVoteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     return Container(
       decoration: BoxDecoration(
         color: pillColor,
@@ -178,7 +180,6 @@ class CommentVoteButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Upvote
           InkWell(
             onTap: isDisabled ? null : onUpvote,
             borderRadius: const BorderRadius.horizontal(
@@ -194,14 +195,10 @@ class CommentVoteButton extends StatelessWidget {
                     ? Icons.arrow_upward
                     : Icons.arrow_upward_outlined,
                 size: isSmall ? 16 : 18,
-                color: comment.userVote == 1
-                    ? Colors.deepOrange
-                    : Colors.grey[600],
+                color: comment.userVote == 1 ? t.upvote : t.voteNeutral,
               ),
             ),
           ),
-
-          // Score
           Padding(
             padding: EdgeInsets.symmetric(horizontal: isSmall ? 2 : 4),
             child: Text(
@@ -210,15 +207,13 @@ class CommentVoteButton extends StatelessWidget {
                 fontSize: isSmall ? 12 : 14,
                 fontWeight: FontWeight.bold,
                 color: comment.userVote == 1
-                    ? Colors.deepOrange
+                    ? t.upvote
                     : comment.userVote == -1
-                    ? Colors.indigo
-                    : Colors.grey[700],
+                    ? t.downvote
+                    : t.textPrimary,
               ),
             ),
           ),
-
-          // Downvote
           InkWell(
             onTap: isDisabled ? null : onDownvote,
             borderRadius: const BorderRadius.horizontal(
@@ -234,9 +229,7 @@ class CommentVoteButton extends StatelessWidget {
                     ? Icons.arrow_downward
                     : Icons.arrow_downward_outlined,
                 size: isSmall ? 16 : 18,
-                color: comment.userVote == -1
-                    ? Colors.indigo
-                    : Colors.grey[600],
+                color: comment.userVote == -1 ? t.downvote : t.voteNeutral,
               ),
             ),
           ),

@@ -2,7 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/constants/reddit_constants.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/utils/time_formatter.dart';
+import 'package:mini_reddit_v2/core/widgets/post_images_carousel.dart';
+import 'package:mini_reddit_v2/features/profile/presentation/pages/user_profile_screen.dart';
 
 class PostCard extends StatelessWidget {
   final PostDetailsModel post;
@@ -29,7 +32,7 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       color: theme.cardColor,
@@ -71,7 +74,11 @@ class PostCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // Navigate to community/profile
+        if (post.communityName.isNotEmpty) {
+          // TODO: Navigate to community
+        } else if (post.authorId.isNotEmpty) {
+          _goToProfile(context, post.authorId);
+        }
       },
       child: CircleAvatar(
         radius: 20,
@@ -143,8 +150,8 @@ class PostCard extends StatelessWidget {
     return OutlinedButton(
       onPressed: onFollow,
       style: OutlinedButton.styleFrom(
-        foregroundColor: RedditConstants.orange,
-        side: const BorderSide(color: RedditConstants.orange, width: 1),
+        foregroundColor: context.tokens.brandOrange,
+        side: BorderSide(color: context.tokens.brandOrange, width: 1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         minimumSize: const Size(64, 28),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -203,103 +210,18 @@ class PostCard extends StatelessWidget {
   }
 
   Widget _buildImageGallery(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final urls = post.images
+        .map((e) => e.imageUrl)
+        .where((u) => u.isNotEmpty)
+        .toList();
+    if (urls.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        children: [
-          if (post.images.length == 1)
-            _buildSingleImage(context, post.images.first)
-          else
-            _buildMultipleImages(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSingleImage(BuildContext context, dynamic image) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        // Open full-screen image viewer
-      },
-      child: Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxHeight: 500),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(0),
-          child: Image.network(
-            image.imageUrl,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 200,
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-              child: Center(
-                child: Icon(
-                  Icons.broken_image,
-                  size: 48,
-                  color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-                ),
-              ),
-            ),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                height: 300,
-                color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                    strokeWidth: 2,
-                    color: RedditConstants.orange,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMultipleImages(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: post.images.length,
-        itemBuilder: (context, index) {
-          final image = post.images[index];
-          return GestureDetector(
-            onTap: () {
-              // Open gallery view
-            },
-            child: Container(
-              width: 200,
-              margin: EdgeInsets.only(
-                left: index == 0 ? 16 : 8,
-                right: index == post.images.length - 1 ? 16 : 0,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  image.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade300,
-                    child: const Icon(Icons.broken_image),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: PostImagesCarousel(
+        imageUrls: urls,
+        aspectRatio: 4 / 3,
+        borderRadius: 12,
       ),
     );
   }
@@ -442,9 +364,6 @@ class PostCard extends StatelessWidget {
 
   // ============= FOOTER SECTION =============
   Widget _buildFooter(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
       child: Row(
@@ -458,12 +377,12 @@ class PostCard extends StatelessWidget {
             onTap: onComment,
           ),
           const SizedBox(width: 12),
-          _buildActionButton(
-            context,
-            icon: Icons.share_outlined,
-            label: 'Share',
-            onTap: onShare ?? () => _showShareSheet(context),
-          ),
+          // _buildActionButton(
+          //   context,
+          //   icon: Icons.share_outlined,
+          //   label: 'Share',
+          //   onTap: onShare ?? () => _showShareSheet(context),
+          // ),
           // const Spacer(),
           // _buildSaveButton(context),
         ],
@@ -492,7 +411,7 @@ class PostCard extends StatelessWidget {
                 ? Icons.arrow_upward
                 : Icons.arrow_upward_outlined,
             color: post.userVote == 1
-                ? RedditConstants.upvote
+                ? context.tokens.upvote
                 : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
             onTap: onUpvote,
             isLeft: true,
@@ -505,9 +424,9 @@ class PostCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
                 color: post.userVote == 1
-                    ? RedditConstants.upvote
+                    ? context.tokens.upvote
                     : post.userVote == -1
-                    ? RedditConstants.downvote
+                    ? context.tokens.downvote
                     : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
               ),
             ),
@@ -517,7 +436,7 @@ class PostCard extends StatelessWidget {
                 ? Icons.arrow_downward
                 : Icons.arrow_downward_outlined,
             color: post.userVote == -1
-                ? RedditConstants.downvote
+                ? context.tokens.downvote
                 : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
             onTap: onDownvote,
             isRight: true,
@@ -660,6 +579,13 @@ class PostCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _goToProfile(BuildContext context, String userId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => UserProfileScreen(userId: userId)),
     );
   }
 }

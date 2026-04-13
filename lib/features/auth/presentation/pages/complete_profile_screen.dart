@@ -1,8 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/core/utils/image_utils.dart';
 import 'package:mini_reddit_v2/core/widgets/main_navigation_layout.dart';
+import 'package:mini_reddit_v2/features/auth/presentation/pages/login_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
 
 class CompleteProfileScreen extends ConsumerStatefulWidget {
@@ -13,8 +16,7 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
       _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState
-    extends ConsumerState<CompleteProfileScreen> {
+class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   final _fullNameController = TextEditingController();
   final _bioController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -36,19 +38,44 @@ class _CompleteProfileScreenState
   }
 
   Future<void> _saveProfile() async {
+    debugPrint('🔍 _saveProfile called');
+
     String? imageUrl;
     if (_imageFile != null) {
-      imageUrl =
-          await ref.read(authProvider.notifier).uploadImage(_imageFile!);
-      if (imageUrl == null) return; // Error handled by notifier
+      debugPrint('🔍 Uploading profile image...');
+      imageUrl = await ref.read(authProvider.notifier).uploadImage(_imageFile!);
+      debugPrint('🔍 Image upload result: $imageUrl');
+
+      if (imageUrl == null) {
+        debugPrint('❌ Image upload failed');
+        return; // Error handled by notifier
+      }
     }
 
-    await ref.read(authProvider.notifier).completeProfile(
+    debugPrint('🔍 Completing profile with data:');
+    debugPrint('🔍 - fullName: ${_fullNameController.text.trim()}');
+    debugPrint('🔍 - bio: ${_bioController.text.trim()}');
+    debugPrint('🔍 - username: ${_usernameController.text.trim()}');
+    debugPrint('🔍 - avatarUrl: $imageUrl');
+
+    await ref
+        .read(authProvider.notifier)
+        .completeProfile(
           fullName: _fullNameController.text.trim(),
           bio: _bioController.text.trim(),
           username: _usernameController.text.trim(),
           avatarUrl: imageUrl,
         );
+  }
+
+  Future<void> _logout() async {
+    await ref.read(authProvider.notifier).signOut();
+    // go to login and remove any previous routes
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   @override
@@ -66,8 +93,7 @@ class _CompleteProfileScreenState
       if (next.isCompleteProfile && !(previous?.isCompleteProfile ?? false)) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-              builder: (context) => const MainNavigationLayout()),
+          MaterialPageRoute(builder: (context) => const MainNavigationLayout()),
           (route) => false,
         );
         return;
@@ -80,8 +106,9 @@ class _CompleteProfileScreenState
             content: Text(next.errorMessage!),
             backgroundColor: colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -95,6 +122,12 @@ class _CompleteProfileScreenState
           'Complete Profile',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
+        leading: IconButton(
+          icon: Icon(Icons.logout, color: Colors.red),
+          onPressed: () {
+            _logout();
+          },
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -105,13 +138,20 @@ class _CompleteProfileScreenState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 12),
-                Text(
-                  'Tell us about yourself',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                  ),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(AssetsUtils.emojiHappy, width: 50, height: 50),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tell us about yourself',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -297,8 +337,11 @@ InputDecoration _inputDecoration(
   return InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
-    prefixIcon:
-        Icon(icon, size: 20, color: colorScheme.onSurface.withOpacity(0.45)),
+    prefixIcon: Icon(
+      icon,
+      size: 20,
+      color: colorScheme.onSurface.withOpacity(0.45),
+    ),
     suffixIcon: suffix,
     filled: true,
     fillColor: colorScheme.onSurface.withOpacity(0.05),

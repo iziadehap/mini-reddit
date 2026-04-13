@@ -26,6 +26,7 @@ class PostDetailsModel {
   final String? flairName;
   final String? flairColor;
   final List<CommentModel> comments;
+  final bool isSaved; // ✅ ADD THIS FIELD
 
   PostDetailsModel({
     required this.id,
@@ -49,6 +50,7 @@ class PostDetailsModel {
     this.flairName,
     this.flairColor,
     required this.comments,
+    this.isSaved = false, // ✅ ADD THIS
   });
 
   factory PostDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -68,8 +70,12 @@ class PostDetailsModel {
       score: (json['score'] as num?)?.toInt() ?? 0,
       userVote: (json['user_vote'] as num?)?.toInt(),
       commentsCount: (json['comments_count'] as num?)?.toInt() ?? 0,
-      images: (json['images'] as List?)
-              ?.map((imgJson) => PostImage.fromJson(imgJson as Map<String, dynamic>))
+      images:
+          (json['images'] as List?)
+              ?.map(
+                (imgJson) =>
+                    PostImage.fromJson(imgJson as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       communityId: json['community_id']?.toString() ?? '',
@@ -78,36 +84,41 @@ class PostDetailsModel {
       flairId: json['flair_id']?.toString(),
       flairName: json['flair_name']?.toString(),
       flairColor: json['flair_color']?.toString(),
-      comments: (json['comments'] as List?)
-              ?.map((cJson) => CommentModel.fromJson(cJson as Map<String, dynamic>))
+      comments:
+          (json['comments'] as List?)
+              ?.map(
+                (cJson) => CommentModel.fromJson(cJson as Map<String, dynamic>),
+              )
               .toList() ??
           [],
+      isSaved: json['is_saved'] ?? false, // ✅ ADD THIS
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'content': content,
-        'link_url': linkUrl,
-        'post_type': postType,
-        'created_at': createdAt.toIso8601String(),
-        'author_id': authorId,
-        'author_username': authorUsername,
-        'author_full_name': authorFullName,
-        'author_avatar_url': authorAvatarUrl,
-        'score': score,
-        'user_vote': userVote,
-        'comments_count': commentsCount,
-        'images': images.map((img) => img.toJson()).toList(),
-        'community_id': communityId,
-        'community_name': communityName,
-        'community_image_url': communityImageUrl,
-        'flair_id': flairId,
-        'flair_name': flairName,
-        'flair_color': flairColor,
-        'comments': comments.map((c) => c.toJson()).toList(),
-      };
+    'id': id,
+    'title': title,
+    'content': content,
+    'link_url': linkUrl,
+    'post_type': postType,
+    'created_at': createdAt.toIso8601String(),
+    'author_id': authorId,
+    'author_username': authorUsername,
+    'author_full_name': authorFullName,
+    'author_avatar_url': authorAvatarUrl,
+    'score': score,
+    'user_vote': userVote,
+    'comments_count': commentsCount,
+    'images': images.map((img) => img.toJson()).toList(),
+    'community_id': communityId,
+    'community_name': communityName,
+    'community_image_url': communityImageUrl,
+    'flair_id': flairId,
+    'flair_name': flairName,
+    'flair_color': flairColor,
+    'comments': comments.map((c) => c.toJson()).toList(),
+    'is_saved': isSaved, // ✅ ADD THIS
+  };
 
   PostDetailsModel copyWith({
     String? id,
@@ -132,6 +143,7 @@ class PostDetailsModel {
     String? flairName,
     String? flairColor,
     List<CommentModel>? comments,
+    bool? isSaved, // ✅ ADD THIS
   }) {
     return PostDetailsModel(
       id: id ?? this.id,
@@ -155,9 +167,11 @@ class PostDetailsModel {
       flairName: flairName ?? this.flairName,
       flairColor: flairColor ?? this.flairColor,
       comments: comments ?? this.comments,
+      isSaved: isSaved ?? this.isSaved, // ✅ ADD THIS
     );
   }
 
+  // ✅ FIXED: Added isSaved
   FeedPostModel toFeedModel() {
     return FeedPostModel(
       id: id,
@@ -181,6 +195,7 @@ class PostDetailsModel {
       flairId: flairId,
       flairName: flairName,
       flairColor: flairColor,
+      isSaved: isSaved, // ✅ ADD THIS
     );
   }
 }

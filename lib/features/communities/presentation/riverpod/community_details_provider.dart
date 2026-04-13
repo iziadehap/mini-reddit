@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/community_details.dart';
 import 'package:mini_reddit_v2/core/models/snackbar_model.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
@@ -63,11 +63,12 @@ class CommunityDetailsNotifier
           isError: true,
         );
       },
-      (communityDetails) {
+      (_) {
         ref.read(SuccessEditCommunityProvider.notifier).state = SnackBarModel(
           message: 'Community updated successfully!',
           isError: false,
         );
+        fetchCommunityDetails(communityId);
       },
     );
   }

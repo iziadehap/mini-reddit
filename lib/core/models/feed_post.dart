@@ -14,6 +14,7 @@ class FeedPostModel {
   final String? authorFullName;
   final String? authorAvatarUrl;
   final int score;
+  final bool isSaved;
   final double hotScore;
   final int? userVote;
   final int commentsCount;
@@ -24,6 +25,7 @@ class FeedPostModel {
   final String? flairId;
   final String? flairName;
   final String? flairColor;
+  final bool? isDeleted;
 
   FeedPostModel({
     required this.id,
@@ -37,6 +39,7 @@ class FeedPostModel {
     this.authorFullName,
     this.authorAvatarUrl,
     required this.score,
+    required this.isSaved,
     required this.hotScore,
     required this.commentsCount,
     this.userVote,
@@ -47,6 +50,7 @@ class FeedPostModel {
     this.flairId,
     this.flairName,
     this.flairColor,
+    this.isDeleted,
   });
 
   factory FeedPostModel.fromJson(Map<String, dynamic> json) {
@@ -64,45 +68,55 @@ class FeedPostModel {
       authorFullName: json['author_full_name']?.toString(),
       authorAvatarUrl: json['author_avatar_url']?.toString(),
       score: json['score'] != null ? (json['score'] as num).toInt() : 0,
-      hotScore: json['hot_score'] != null ? (json['hot_score'] as num).toDouble() : 0.0,
+      hotScore: json['hot_score'] != null
+          ? (json['hot_score'] as num).toDouble()
+          : 0.0,
       commentsCount: (json['comments_count'] as num?)?.toInt() ?? 0,
       userVote: (json['user_vote'] as num?)?.toInt(),
-      images: (json['images'] as List?)
-          ?.map((imgJson) => PostImage.fromJson(imgJson as Map<String, dynamic>))
-          .toList(),
+      images: json['images'] is List
+          ? (json['images'] as List)
+                .whereType<Map>()
+                .map((m) => PostImage.fromJson(Map<String, dynamic>.from(m)))
+                .toList()
+          : null,
+      isSaved: json['is_saved'] ?? false,
       communityId: json['community_id']?.toString() ?? '',
       communityName: json['community_name']?.toString() ?? '',
       communityImageUrl: json['community_image_url']?.toString(),
       flairId: json['flair_id']?.toString(),
       flairName: json['flair_name']?.toString(),
       flairColor: json['flair_color']?.toString(),
+      isDeleted: json['is_deleted'] as bool?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'content': content,
-        'link_url': linkUrl,
-        'post_type': postType,
-        'created_at': createdAt.toIso8601String(),
-        'author_id': authorId,
-        'author_username': authorUsername,
-        'author_full_name': authorFullName,
-        'author_avatar_url': authorAvatarUrl,
-        'score': score,
-        'hot_score': hotScore,
-        'comments_count': commentsCount,
-        'user_vote': userVote,
-        'images': images?.map((img) => img.toJson()).toList(),
-        'community_id': communityId,
-        'community_name': communityName,
-        'community_image_url': communityImageUrl,
-        'flair_id': flairId,
-        'flair_name': flairName,
-        'flair_color': flairColor,
-      };
+    'id': id,
+    'title': title,
+    'content': content,
+    'link_url': linkUrl,
+    'post_type': postType,
+    'created_at': createdAt.toIso8601String(),
+    'author_id': authorId,
+    'author_username': authorUsername,
+    'author_full_name': authorFullName,
+    'author_avatar_url': authorAvatarUrl,
+    'score': score,
+    'hot_score': hotScore,
+    'comments_count': commentsCount,
+    'user_vote': userVote,
+    'images': images?.map((img) => img.toJson()).toList(),
+    'is_saved': isSaved,
+    'community_id': communityId,
+    'community_name': communityName,
+    'community_image_url': communityImageUrl,
+    'flair_id': flairId,
+    'flair_name': flairName,
+    'flair_color': flairColor,
+    'is_deleted': isDeleted,
+  };
 
+  // ✅ FIXED: Added isSaved parameter
   FeedPostModel copyWith({
     String? id,
     String? title,
@@ -112,6 +126,7 @@ class FeedPostModel {
     DateTime? createdAt,
     String? authorId,
     int? score,
+    bool? isSaved, // ✅ ADD THIS
     double? hotScore,
     int? commentsCount,
     int? userVote,
@@ -126,6 +141,7 @@ class FeedPostModel {
     String? flairId,
     String? flairName,
     String? flairColor,
+    bool? isDeleted,
   }) {
     return FeedPostModel(
       id: id ?? this.id,
@@ -136,6 +152,7 @@ class FeedPostModel {
       createdAt: createdAt ?? this.createdAt,
       authorId: authorId ?? this.authorId,
       score: score ?? this.score,
+      isSaved: isSaved ?? this.isSaved, // ✅ FIXED
       hotScore: hotScore ?? this.hotScore,
       commentsCount: commentsCount ?? this.commentsCount,
       userVote: clearUserVote ? null : (userVote ?? this.userVote),
@@ -149,6 +166,7 @@ class FeedPostModel {
       flairId: flairId ?? this.flairId,
       flairName: flairName ?? this.flairName,
       flairColor: flairColor ?? this.flairColor,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -166,5 +184,10 @@ class FeedPostModel {
     } else {
       return copyWith(userVote: voteValue, score: score + voteValue);
     }
+  }
+
+  // ✅ ADD THIS: Toggle save method
+  FeedPostModel toggleSave() {
+    return copyWith(isSaved: !isSaved);
   }
 }

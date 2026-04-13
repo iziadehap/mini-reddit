@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/theme/app_theme_v2.dart';
 import 'package:mini_reddit_v2/core/widgets/error_widgets.dart';
 import 'package:mini_reddit_v2/features/post/presentation/providers/post_provider.dart';
 import 'package:mini_reddit_v2/features/post/presentation/providers/post_state.dart';
@@ -21,7 +22,6 @@ class _PostDetailsScreenState extends ConsumerState<PostDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ الطريقة الصحيحة: استخدام addPostFrameCallback
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(postProvider.notifier).getPostDetails(postId: widget.postId);
@@ -29,121 +29,140 @@ class _PostDetailsScreenState extends ConsumerState<PostDetailsScreen> {
     });
   }
 
+  void _showErrorSnackBar(String message) {
+    final tokens = context.tokens;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: context.rTypo.bodyMedium.copyWith(color: tokens.textPrimary),
+        ),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(AppSpacing.lg),
+        backgroundColor: tokens.bgElevated,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final postState = ref.watch(postProvider);
+    final tokens = context.tokens;
 
-    // ✅ كمان هنا نستخدم addPostFrameCallback للـ SnackBar
     ref.listen(postProvider, (previous, next) {
       if (next.hasError && !next.showFullScreenError && !next.isSnackBarShown) {
-        // تأخير ظهور SnackBar بعد انتهاء البناء
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.errorMessage ?? 'Error'),
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-            ),
-          );
-
-          // تحديث حالة الـ SnackBar
+          _showErrorSnackBar(next.errorMessage ?? 'Error');
           ref.read(postProvider.notifier).resetSnackBarFlag();
         });
       }
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Post')),
-      body: _buildBody(postState),
+      backgroundColor: tokens.bgPage,
+      appBar: AppBar(
+        backgroundColor: tokens.bgSurface,
+        foregroundColor: tokens.textPrimary,
+        title: Text('Post', style: context.rTypo.titleMedium),
+      ),
+      body: _buildBody(context, postState),
     );
   }
 
-  Widget _buildBody(PostState state) {
-    ref.listen(postProvider, (previous, next) {
-      // للأخطاء العادية اللي محتاجة SnackBar
-      if (next.hasError && !next.showFullScreenError && !next.isSnackBarShown) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
+  Widget _buildBody(BuildContext context, PostState state) {
+    final tokens = context.tokens;
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.errorMessage ?? 'Error'),
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-            ),
-          );
-
-          // تحديث الحالة بعد ظهور SnackBar
-          ref.read(postProvider.notifier).resetSnackBarFlag();
-        });
-      }
-    });
-    // حالة التحميل الأولي
     if (state.isLoading && state.post == null) {
-      return const LoadingWidget(message: 'Loading post...');
-    }
-
-    // حالة الخطأ full screen
-    if (state.showFullScreenError) {
-      return ErrorWidgetCustom(
-        message: state.errorMessage ?? 'Something went wrong',
-        onRetry: () {
-          // إعادة المحاولة - برضو داخل addPostFrameCallback
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              ref
-                  .read(postProvider.notifier)
-                  .getPostDetails(postId: widget.postId);
-            }
-          });
-        },
-      );
-    }
-
-    // حالة عدم وجود بوست
-    if (state.post == null) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('Post not found', style: TextStyle(fontSize: 18)),
+            CircularProgressIndicator(color: tokens.brandOrange),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Loading post...',
+              style: context.rTypo.bodyMedium.copyWith(
+                color: tokens.textSecondary,
+              ),
+            ),
           ],
         ),
       );
     }
 
-    // العرض العادي
-    return RefreshIndicator(
-      onRefresh: () async {
-        // RefreshIndicator أصلاً بيعمل async
-        await ref
-            .read(postProvider.notifier)
-            .getPostDetails(postId: widget.postId);
-      },
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            PostCard(
-              post: state.post!,
-              onUpvote: () {
+    if (state.showFullScreenError) {
+      return ColoredBox(
+        color: tokens.bgPage,
+        child: ErrorWidgetCustom(
+          message: state.errorMessage ?? 'Something went wrong',
+          onRetry: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
                 ref
                     .read(postProvider.notifier)
-                    .votePost(postId: state.post!.id, value: 1);
-              },
-              onDownvote: () {
-                ref
-                    .read(postProvider.notifier)
-                    .votePost(postId: state.post!.id, value: -1);
-              },
-            ),
-            const Divider(height: 1),
-            BuildAddComment(),
-            BuildCommentsSection(comments: state.post!.comments),
-          ],
+                    .getPostDetails(postId: widget.postId);
+              }
+            });
+          },
+        ),
+      );
+    }
+
+    if (state.post == null) {
+      return ColoredBox(
+        color: tokens.bgPage,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.inbox_outlined, size: 64, color: tokens.textMuted),
+              const SizedBox(height: AppSpacing.lg),
+              Text('Post not found', style: context.rTypo.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'This post may have been removed.',
+                style: context.rTypo.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ColoredBox(
+      color: tokens.bgCanvas,
+      child: RefreshIndicator(
+        color: tokens.brandOrange,
+        backgroundColor: tokens.bgSurface,
+        onRefresh: () async {
+          await ref
+              .read(postProvider.notifier)
+              .getPostDetails(postId: widget.postId);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              PostCard(
+                post: state.post!,
+                onUpvote: () {
+                  ref
+                      .read(postProvider.notifier)
+                      .votePost(postId: state.post!.id, value: 1);
+                },
+                onDownvote: () {
+                  ref
+                      .read(postProvider.notifier)
+                      .votePost(postId: state.post!.id, value: -1);
+                },
+              ),
+              Divider(height: 1, thickness: 0.8, color: tokens.divider),
+              const BuildAddComment(),
+              BuildCommentsSection(comments: state.post!.comments),
+            ],
+          ),
         ),
       ),
     );

@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
-import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/models/user_devices.dart';
 import 'package:mini_reddit_v2/core/utils/auth_error_handler.dart';
-import 'package:mini_reddit_v2/features/auth/data/auth_dataSources.dart';
+import 'package:mini_reddit_v2/features/auth/data/auth_data_sources.dart';
 import 'package:mini_reddit_v2/features/auth/domain/auth_repo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -49,6 +51,60 @@ class AuthRepoImpl implements AuthRepo {
   }
 
   @override
+  Future<Either<Failure, List<UserDevice>>> getUserDevices() async {
+    try {
+      final result = await _authDataSource.getUserDevices();
+      debugPrint("result: $result");
+      return Right(
+        (result as List).map((e) => UserDevice.fromJson(e)).toList(),
+      );
+    } catch (e) {
+      debugPrint("error get user device: $e");
+      return Left(AuthErrorHandler.handle(e, 'Failed to get user devices'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setupPushNotifications() async {
+    try {
+      await _authDataSource.setupPushNotifications();
+      return const Right(null);
+    } catch (e) {
+      return Left(
+        AuthErrorHandler.handle(e, 'Failed to setup push notifications'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> registerDevice({
+    required String fcmToken,
+    required String platform,
+  }) async {
+    try {
+      final result = await _authDataSource.registerDevice(
+        fcmToken: fcmToken,
+        platform: platform,
+      );
+      return Right(result);
+    } catch (e) {
+      return Left(AuthErrorHandler.handle(e, 'Failed to register device'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> unregisterDevice({
+    required String fcmToken,
+  }) async {
+    try {
+      await _authDataSource.unregisterDevice(fcmToken: fcmToken);
+      return const Right(null);
+    } catch (e) {
+      return Left(AuthErrorHandler.handle(e, 'Failed to unregister device'));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserProfileModel>> getUserProfile() async {
     try {
       final profileData = await _authDataSource.getMyProfile();
@@ -75,16 +131,38 @@ class AuthRepoImpl implements AuthRepo {
     required String username,
     String? avatarUrl,
   }) async {
+    debugPrint('🔍 AuthRepo.updateProfile called');
+    debugPrint('🔍 - fullName: $fullName');
+    debugPrint('🔍 - bio: $bio');
+    debugPrint('🔍 - username: $username');
+    debugPrint('🔍 - avatarUrl: $avatarUrl');
+
     try {
+      debugPrint('🔍 Calling AuthDataSource.updateProfile...');
       await _authDataSource.updateProfile(
         username: username,
         fullName: fullName,
         bio: bio,
         avatarUrl: avatarUrl,
       );
+      debugPrint('✅ AuthDataSource.updateProfile completed successfully');
       return const Right(true);
     } catch (e) {
+      debugPrint('❌ Error in AuthRepo.updateProfile: $e');
       return Left(AuthErrorHandler.handle(e, 'Failed to update profile'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUsernameAvailable(String username) async {
+    try {
+      final isAvailable = await _authDataSource.isUsernameAvailable(username);
+      return Right(isAvailable);
+    } catch (e) {
+      debugPrint('❌ Error checking username availability: $e');
+      return Left(
+        AuthErrorHandler.handle(e, 'Failed to check username availability'),
+      );
     }
   }
 

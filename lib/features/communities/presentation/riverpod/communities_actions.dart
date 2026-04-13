@@ -1,13 +1,17 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_repo_impl.dart';
 import 'package:mini_reddit_v2/features/communities/domain/communities_repo.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/community_details_provider.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_communities_provider.dart';
+import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_community_posts_provider.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/user_communities_provider.dart';
+import 'package:mini_reddit_v2/features/feed/presentation/riverpod/feed_provider.dart';
 
 final communitiesActionsProvider =
     StateNotifierProvider<
@@ -16,7 +20,9 @@ final communitiesActionsProvider =
     >((ref) {
       return CommunitiesActionsNotifier(
         ref: ref,
-        communitiesRepo: CommunitiesRepoImpl(communitiesDataSource: CommunitiesDataSource()),
+        communitiesRepo: CommunitiesRepoImpl(
+          communitiesDataSource: CommunitiesDataSource(),
+        ),
       );
     });
 
@@ -80,12 +86,97 @@ class CommunitiesActionsNotifier
   Future<void> removePost(String postId) async {
     final result = await communitiesRepo.removePostFromCommunity(postId);
     result.fold(
-      (failure) => setError(failure.message),
+      (failure) {
+        setError(failure.message);
+        throw Exception(failure.message);
+      },
       (_) {
-        // Post removal is usually followed by a refresh in the screen list
-        print('Post $postId removed successfully');
+        // Remove the post instantly from both feed and community posts UI
+        ref.read(feedProvider.notifier).removePostLocally(postId);
+        ref.read(fetchCommunityPostsProvider.notifier).removePostLocally(postId);
+        debugPrint('Post $postId removed successfully');
       },
     );
+  }
+
+  Future<void> updateCommunityImage(
+    String communityId,
+    String communityName,
+    File imageFile,
+  ) async {
+    try {
+      final imageUrl = await uploadCommunityImage(imageFile);
+      if (imageUrl != null) {
+        await ref
+            .read(communityDetailsProvider.notifier)
+            .editCommunity(
+              communityId: communityId,
+              name: communityName,
+              imageUrl: imageUrl,
+            );
+      }
+    } on Exception catch (e) {
+      debugPrint('Error updating community image: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateCommunityBanner(
+    String communityId,
+    String communityName,
+    File imageFile,
+  ) async {
+    try {
+      final imageUrl = await uploadCommunityImage(imageFile);
+      if (imageUrl != null) {
+        await ref
+            .read(communityDetailsProvider.notifier)
+            .editCommunity(
+              communityId: communityId,
+              name: communityName,
+              bannerUrl: imageUrl,
+            );
+      }
+    } on Exception catch (e) {
+      debugPrint('Error updating community banner: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCommunityImage(
+    String communityId,
+    String communityName,
+  ) async {
+    try {
+      await ref
+          .read(communityDetailsProvider.notifier)
+          .editCommunity(
+            communityId: communityId,
+            name: communityName,
+            imageUrl: '',
+          );
+    } on Exception catch (e) {
+      debugPrint('Error deleting community image: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCommunityBanner(
+    String communityId,
+    String communityName,
+  ) async {
+    try {
+      await ref
+          .read(communityDetailsProvider.notifier)
+          .editCommunity(
+            communityId: communityId,
+            name: communityName,
+            bannerUrl: '',
+          );
+    } on Exception catch (e) {
+      debugPrint('Error deleting community banner: $e');
+      rethrow;
+    }
   }
 
   // Future<void> createCommunityPost({

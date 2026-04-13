@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "480776096206",
+    "project_id": "mini-reddit-9ee81",
+    "storage_bucket": "mini-reddit-9ee81.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:480776096206:android:526271d2f1eee74540c39f",
+        "android_client_info": {
+          "package_name": "com.example.mini_reddit_v2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCp90vogsdiK6R-up9YpXHQRKQdqek7BgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

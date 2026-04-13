@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
+import 'package:mini_reddit_v2/core/utils/supabase_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CommunitiesDataSource {
@@ -23,7 +25,7 @@ class CommunitiesDataSource {
           .map((e) => CommunityModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting communities: $e');
+      debugPrint('Error getting communities: $e');
       return [];
     }
   }
@@ -41,7 +43,7 @@ class CommunitiesDataSource {
 
       return CommunityDetailsModel.fromJson(data);
     } catch (e) {
-      print('Error getting community by id: $e');
+      debugPrint('Error getting community by id: $e');
       return null;
     }
   }
@@ -60,12 +62,12 @@ class CommunitiesDataSource {
       };
 
       final data = await _supabase.rpc('get_user_communities', params: params);
-      // print('User communities data: $data');
+      // debugPrint('User communities data: $data');
       return (data as List)
           .map((e) => UserCommunityModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting user communities: $e');
+      debugPrint('Error getting user communities: $e');
       return [];
     }
   }
@@ -92,10 +94,10 @@ class CommunitiesDataSource {
         },
       );
       // todo : dont return map return community model
-      print('Community created successfully: $response');
+      debugPrint('Community created successfully: $response');
       return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error creating community: $e');
+      debugPrint('Error creating community: $e');
       return {'success': false, 'message': 'Failed to create community: $e'};
     }
   }
@@ -112,7 +114,7 @@ class CommunitiesDataSource {
       );
       return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error joining community: $e');
+      debugPrint('Error joining community: $e');
       return {'success': false, 'message': 'Failed to join community: $e'};
     }
   }
@@ -129,7 +131,7 @@ class CommunitiesDataSource {
       );
       return Map<String, dynamic>.from(response);
     } catch (e) {
-      print('Error leaving community: $e');
+      debugPrint('Error leaving community: $e');
       return {'success': false, 'message': 'Failed to leave community: $e'};
     }
   }
@@ -139,15 +141,26 @@ class CommunitiesDataSource {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
+      final extension = file.path.split('.').last;
+      final sanitizedName = file.path
+          .split(Platform.pathSeparator)
+          .last
+          .replaceAll(RegExp(r'[^\w\d.]'), '_');
       final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+          '${DateTime.now().millisecondsSinceEpoch}_$sanitizedName';
       final path = '$userId/$fileName';
 
-      await _supabase.storage.from('community_images').upload(path, file);
+      final bytes = await file.readAsBytes();
 
-      return _supabase.storage.from('community_images').getPublicUrl(path);
+      await _supabase.storage
+          .from(SupabaseText.communityImageBuckets)
+          .uploadBinary(path, bytes);
+
+      return _supabase.storage
+          .from(SupabaseText.communityImageBuckets)
+          .getPublicUrl(path);
     } catch (e) {
-      print('Error uploading community icon: $e');
+      debugPrint('Error uploading community image: $e');
       rethrow;
     }
   }
@@ -155,8 +168,8 @@ class CommunitiesDataSource {
   // البحث عن المجتمعات
   Future<List<CommunityModel>> searchCommunities(String query) async {
     final data = await getCommunities(search: query, limit: 20);
-    print('Searching for communities: $query');
-    print('Communities data: $data');
+    debugPrint('Searching for communities: $query');
+    debugPrint('Communities data: $data');
     return data;
   }
 
@@ -166,7 +179,7 @@ class CommunitiesDataSource {
       final communities = await getUserCommunities(userId: userId);
       return communities.any((c) => c.id == communityId);
     } catch (e) {
-      print('Error checking membership: $e');
+      debugPrint('Error checking membership: $e');
       return false;
     }
   }
@@ -223,7 +236,7 @@ class CommunitiesDataSource {
   //       throw Exception(responseMap['message']);
   //     }
   //   } catch (e) {
-  //     print('Error creating post: $e');
+  //     debugPrint('Error creating post: $e');
   //     throw Exception('Failed to create post: $e');
   //   }
   // }
@@ -240,21 +253,20 @@ class CommunitiesDataSource {
 
       final originalPost = await _supabase
           .from('posts')
-          .select('content, image_url, author_id')
+          .select('content, image_url, user_id')
           .eq('id', originalPostId)
           .single();
 
       final postData = {
         'community_id': targetCommunityId,
-        'author_id': userId,
+        'user_id': userId,
+        'title': 'Shared Post',
+        'post_type': 'text',
         'content': additionalContent ?? originalPost['content'],
         'image_url': originalPost['image_url'],
-        'original_post_id': originalPostId,
-        'original_author_id': originalPost['author_id'],
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
         'is_deleted': false,
-        'is_share': true,
       };
 
       final response = await _supabase.from('posts').insert(postData).select('''
@@ -263,9 +275,9 @@ class CommunitiesDataSource {
             image_url,
             created_at,
             updated_at,
-            author_id,
+            user_id,
             community_id,
-            profiles:author_id (
+            profiles:user_id (
               username,
               full_name,
               avatar_url
@@ -274,6 +286,7 @@ class CommunitiesDataSource {
 
       return FeedPostModel.fromJson({
         ...response,
+        'author_id': response['user_id'],
         'author_username': response['profiles']?['username'],
         'author_full_name': response['profiles']?['full_name'],
         'author_avatar_url': response['profiles']?['avatar_url'],
@@ -293,15 +306,55 @@ class CommunitiesDataSource {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
+      // Get post details to check community and author
       final post = await _supabase
           .from('posts')
-          .select('author_id')
+          .select('user_id, community_id')
           .eq('id', postId)
           .single();
 
-      if (post['author_id'] != userId) {
-        throw Exception('You can only remove your own posts');
+      // Check if user is the post author
+      final isPostAuthor = post['user_id'] == userId;
+
+      bool canDelete = isPostAuthor;
+
+      // If not the author, check if user is admin/moderator or owner of the community
+      if (!canDelete && post['community_id'] != null) {
+        // Get community details to check owner
+        final community = await _supabase
+            .from('communities')
+            .select('owner_id, created_by')
+            .eq('id', post['community_id'])
+            .single();
+
+        final ownerId = community['owner_id'] ?? community['created_by'];
+        final isCommunityOwner = ownerId == userId;
+
+        // Check if user is admin/moderator in the community
+        bool isCommunityAdmin = false;
+        try {
+          final memberData = await _supabase
+              .from('community_members')
+              .select('role')
+              .eq('community_id', post['community_id'])
+              .eq('user_id', userId)
+              .single();
+          final role = memberData['role'];
+          isCommunityAdmin = role == 'admin' || role == 'moderator';
+        } catch (_) {
+          // ignore if membership not found
+        }
+
+        canDelete = isCommunityOwner || isCommunityAdmin;
       }
+
+      if (!canDelete) {
+        throw Exception(
+          'You can only remove your own posts or if you are a community owner/admin/moderator',
+        );
+      }
+
+      debugPrint('🗑️ Deleting post $postId by setting is_deleted = true');
 
       await _supabase
           .from('posts')
@@ -310,7 +363,10 @@ class CommunitiesDataSource {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', postId);
+
+      debugPrint('✅ Post $postId deleted in database');
     } catch (e) {
+      debugPrint('❌ Failed to delete post: $e');
       throw Exception('Failed to remove post: $e');
     }
   }
@@ -348,9 +404,10 @@ class CommunitiesDataSource {
           .map<FeedPostModel>(
             (e) => FeedPostModel.fromJson(e as Map<String, dynamic>),
           )
+          .where((post) => post.isDeleted != true) // Filter out deleted posts
           .toList();
     } catch (e) {
-      print('Error getting community posts: $e');
+      debugPrint('Error getting community posts: $e');
       throw Exception('Failed to fetch community posts: $e');
     }
   }

@@ -8,7 +8,7 @@ void showCustomSnackBar(
   required Color color,
   bool isError = false,
 }) {
-  var GoogleFonts;
+  // var GoogleFonts;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
@@ -22,7 +22,7 @@ void showCustomSnackBar(
           Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 18),

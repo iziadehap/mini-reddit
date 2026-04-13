@@ -10,6 +10,7 @@ class CommunityModel {
   final int postsCount;
   final DateTime createdAt;
   final bool isMember;
+  final String? createdBy;
 
   CommunityModel({
     required this.id,
@@ -21,6 +22,7 @@ class CommunityModel {
     required this.postsCount,
     required this.createdAt,
     required this.isMember,
+    this.createdBy,
   });
 
   factory CommunityModel.empty({String name = ''}) {
@@ -47,6 +49,7 @@ class CommunityModel {
           ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
       isMember: json['is_member'] as bool? ?? false,
+      createdBy: json['created_by']?.toString(),
     );
   }
 
@@ -60,6 +63,7 @@ class CommunityModel {
     'posts_count': postsCount,
     'created_at': createdAt.toIso8601String(),
     'is_member': isMember,
+    'created_by': createdBy,
   };
 
   CommunityModel copyWith({
@@ -72,6 +76,7 @@ class CommunityModel {
     int? postsCount,
     DateTime? createdAt,
     bool? isMember,
+    String? createdBy,
   }) {
     return CommunityModel(
       id: id ?? this.id,
@@ -83,6 +88,7 @@ class CommunityModel {
       postsCount: postsCount ?? this.postsCount,
       createdAt: createdAt ?? this.createdAt,
       isMember: isMember ?? this.isMember,
+      createdBy: createdBy ?? this.createdBy,
     );
   }
 }

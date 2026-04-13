@@ -65,6 +65,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             fullName: _displayNameController.text,
             bio: _aboutController.text,
             avatar: _selectedAvatarImage,
+            banner: _selectedBannerImage,
           );
       if (mounted) {
         setState(() => _isLoading = false);

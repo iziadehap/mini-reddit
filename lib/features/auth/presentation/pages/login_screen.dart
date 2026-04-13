@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/core/widgets/main_navigation_layout.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/complete_profile_screen.dart';
+import 'package:mini_reddit_v2/features/auth/presentation/pages/forget_password_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
+import 'package:mini_reddit_v2/features/auth/presentation/widgets/input_label.dart';
+
 import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -52,7 +56,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             content: Text(next.errorMessage!),
             backgroundColor: colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
         return; // Don't fall through to navigation checks
@@ -106,7 +112,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.reddit, size: 48, color: Colors.white),
+                    child: Image.asset(
+                      AssetsUtils.emojiHappy,
+                      width: 48,
+                      height: 48,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -131,12 +141,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 48),
 
                 // ── Email ─────────────────────────────────────────────────
-                _InputLabel(label: 'Email'),
+                InputLabel(label: 'Email'),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration(
+                  decoration: inputDecoration(
                     context,
                     hint: 'you@example.com',
                     icon: Icons.alternate_email_rounded,
@@ -145,12 +155,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
 
                 // ── Password ──────────────────────────────────────────────
-                _InputLabel(label: 'Password'),
+                InputLabel(label: 'Password'),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  decoration: _inputDecoration(
+                  decoration: inputDecoration(
                     context,
                     hint: '••••••••',
                     icon: Icons.lock_outline_rounded,
@@ -167,7 +177,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 10),
+                // ── Forgot Password ──────────────────────────────────────────
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
 
                 // ── Sign In Button ─────────────────────────────────────────
                 FilledButton(
@@ -249,11 +281,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: authState.isLoading
                         ? null
                         : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
-                              ),
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
                             ),
+                          ),
                     child: RichText(
                       text: TextSpan(
                         text: "Don't have an account? ",
@@ -282,58 +314,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-class _InputLabel extends StatelessWidget {
-  final String label;
-  const _InputLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-        letterSpacing: 0.3,
-      ),
-    );
-  }
-}
-
-InputDecoration _inputDecoration(
-  BuildContext context, {
-  required String hint,
-  required IconData icon,
-  Widget? suffix,
-}) {
-  final colorScheme = Theme.of(context).colorScheme;
-  return InputDecoration(
-    hintText: hint,
-    hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
-    prefixIcon: Icon(icon, size: 20, color: colorScheme.onSurface.withOpacity(0.45)),
-    suffixIcon: suffix,
-    filled: true,
-    fillColor: colorScheme.onSurface.withOpacity(0.05),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide.none,
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFFFF4500), width: 1.5),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: colorScheme.error),
-    ),
-  );
 }

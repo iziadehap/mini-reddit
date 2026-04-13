@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mini_reddit_v2/core/models/models.dart';
 import 'package:mini_reddit_v2/features/communities/data/communities_data_source.dart';
 import 'package:mini_reddit_v2/features/communities/presentation/riverpod/fetch_communities_provider.dart';
@@ -73,6 +73,7 @@ class FeedNotifier extends StateNotifier<FeedState> {
             userVote: updatedPost.userVote,
             clearUserVote: updatedPost.userVote == null,
             commentsCount: updatedPost.commentsCount,
+            isSaved: updatedPost.isSaved,
           );
         }
       }
@@ -80,6 +81,33 @@ class FeedNotifier extends StateNotifier<FeedState> {
     }).toList();
 
     if (hasChanges) {
+      state = state.copyWith(feed: updatedFeed);
+    }
+  }
+  
+  void updateFeedPostLocally(FeedPostModel updatedPost) {
+    if (state.feed == null) return;
+
+    bool hasChanges = false;
+    final updatedFeed = state.feed!.map((post) {
+      if (post.id == updatedPost.id) {
+        hasChanges = true;
+        return updatedPost;
+      }
+      return post;
+    }).toList();
+
+    if (hasChanges) {
+      state = state.copyWith(feed: updatedFeed);
+    }
+  }
+
+  void removePostLocally(String postId) {
+    if (state.feed == null) return;
+
+    final updatedFeed = state.feed!.where((post) => post.id != postId).toList();
+
+    if (updatedFeed.length != state.feed!.length) {
       state = state.copyWith(feed: updatedFeed);
     }
   }
@@ -160,7 +188,7 @@ class FeedNotifier extends StateNotifier<FeedState> {
 
     result.fold(
       (failure) {
-        print("failure.message ${failure.message}");
+        debugPrint("failure.message ${failure.message}");
         state = state.copyWith(
           isLoading: false,
           isFirstLoad: false,
@@ -168,6 +196,8 @@ class FeedNotifier extends StateNotifier<FeedState> {
         );
       },
       (feed) {
+        // debugPrint("feed 0 ${feed[0].toJson()}");
+        // debugPrint("feed 1 ${feed[1].toJson()}");
         if (feed.isNotEmpty) {
           debugPrint("feed 0 ${feed[0].toJson()}");
           if (feed.length > 1) debugPrint("feed 1 ${feed[1].toJson()}");

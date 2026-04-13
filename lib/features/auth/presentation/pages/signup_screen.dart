@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mini_reddit_v2/core/utils/assets_utils.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/pages/complete_profile_screen.dart';
+import 'package:mini_reddit_v2/features/auth/presentation/pages/verify_email_screen.dart';
 import 'package:mini_reddit_v2/features/auth/presentation/providers/auth_provider.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -22,10 +24,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
-  void _signup() {
-    ref
-        .read(authProvider.notifier)
-        .signUp(_emailController.text.trim(), _passwordController.text.trim());
+  void _signup() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
+
+    await ref.read(authProvider.notifier).signUp(email, password);
   }
 
   @override
@@ -37,9 +47,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     ref.listen(authProvider, (previous, next) {
       if (!context.mounted) return;
 
-      // ✅ FIX: Navigate to CompleteProfileScreen after successful sign-up.
-      // Previously there was NO navigation here — the user just got stuck on
-      // the signup screen after account creation.
+      // Handle email verification requirement
+      if (next.needsEmailVerification &&
+          !(previous?.needsEmailVerification ?? false)) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyEmailScreen(
+              email: next.verificationEmail ?? '',
+              password: _passwordController.text.trim(),
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Handle successful signup (when email verification is disabled)
       if (next.isSignUpSuccess && !(previous?.isSignUpSuccess ?? false)) {
         Navigator.pushReplacement(
           context,
@@ -50,6 +73,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         return;
       }
 
+      // Handle errors
       if (next.errorMessage != null &&
           next.errorMessage != previous?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +81,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             content: Text(next.errorMessage!),
             backgroundColor: colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -68,8 +94,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              size: 20, color: colorScheme.onSurface),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -81,11 +110,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 16),
-                Text(
-                  'Create account',
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        AssetsUtils.emojiLaughing,
+                        width: 50,
+                        height: 50,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Create account',
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -139,9 +181,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // ── Password hint ──────────────────────────────────────────
                 Row(
                   children: [
-                    Icon(Icons.info_outline_rounded,
-                        size: 14,
-                        color: colorScheme.onSurface.withOpacity(0.4)),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 14,
+                      color: colorScheme.onSurface.withOpacity(0.4),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'At least 8 characters',
@@ -187,8 +231,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // ── Login Link ─────────────────────────────────────────────
                 Center(
                   child: TextButton(
-                    onPressed:
-                        authState.isLoading ? null : () => Navigator.pop(context),
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => Navigator.pop(context),
                     child: RichText(
                       text: TextSpan(
                         text: 'Already have an account? ',
@@ -249,8 +294,11 @@ InputDecoration _inputDecoration(
   return InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.3)),
-    prefixIcon:
-        Icon(icon, size: 20, color: colorScheme.onSurface.withOpacity(0.45)),
+    prefixIcon: Icon(
+      icon,
+      size: 20,
+      color: colorScheme.onSurface.withOpacity(0.45),
+    ),
     suffixIcon: suffix,
     filled: true,
     fillColor: colorScheme.onSurface.withOpacity(0.05),
