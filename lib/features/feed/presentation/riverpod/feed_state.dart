@@ -43,9 +43,10 @@ class FeedState {
     String? targetUserId,
     String? selectedCommunityName,
     bool clearSelectedCommunityName = false,
+    bool clearFeed = false,
   }) {
     return FeedState(
-      feed: feed ?? this.feed,
+      feed: clearFeed ? [] : (feed ?? this.feed),
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       isFirstLoad: isFirstLoad ?? this.isFirstLoad,
@@ -62,15 +63,18 @@ class FeedState {
   }
 
   factory FeedState.initial() => FeedState(
-    feed: [],
-    // True until firstFetchFeed runs — avoids empty list matching "no posts" before load.
-    isLoading: true,
-    error: null,
-    isFirstLoad: true,
-    isLoadMore: false,
-    isEnd: false,
-    feedType: FeedType.popular,
-    timeframe: TopFeedTimeframe.day,
-    selectedCommunityName: null,
-  );
+        feed: [],
+        isLoading: false,
+        error: null,
+        isFirstLoad: true,
+        isLoadMore: false,
+        isEnd: false,
+        feedType: FeedType.popular,
+        timeframe: TopFeedTimeframe.day,
+        selectedCommunityName: null,
+        communities: [],
+        userCommunities: [],
+        isCommunitiesLoading: false,
+        communitiesError: null,
+      );
 }

@@ -20,6 +20,9 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 /// Set in [main] when app opens from a quit state via notification (navigator not ready yet).
 String? pendingNotificationPostId;
 
+import 'core/services/supabase_services.dart';
+import 'core/theme/theme_provider.dart';
+
 void main() async {
   // test acc
 

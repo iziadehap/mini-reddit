@@ -28,20 +28,20 @@ final feedProvider = StateNotifierProvider<FeedNotifier, FeedState>((ref) {
 
 final communityFeedProvider =
     StateNotifierProvider.family<FeedNotifier, FeedState, String>((
-      ref,
-      communityName,
-    ) {
-      final notifier = FeedNotifier(
-        ref: ref,
-        feedRepo: FeedRepoImpl(FeedDataSource(), CommunitiesDataSource()),
-        postRepo: PostRepoImpl(PostDataSource()),
-      );
-      // Initialize with the specific community
-      Future.microtask(() {
-        notifier.selectCommunity(communityName);
-      });
-      return notifier;
-    });
+  ref,
+  communityName,
+) {
+  final notifier = FeedNotifier(
+    ref: ref,
+    feedRepo: FeedRepoImpl(FeedDataSource(), CommunitiesDataSource()),
+    postRepo: PostRepoImpl(PostDataSource()),
+  );
+  // Initialize with the specific community
+  Future.microtask(() {
+    notifier.selectCommunity(communityName);
+  });
+  return notifier;
+});
 
 class FeedNotifier extends StateNotifier<FeedState> {
   final Ref ref;
@@ -181,6 +181,7 @@ class FeedNotifier extends StateNotifier<FeedState> {
       isFirstLoad: true,
       error: null,
       isEnd: false,
+      clearFeed: true,
     );
 
     final result = await _fetchFeedData(offset: 0);
@@ -197,6 +198,10 @@ class FeedNotifier extends StateNotifier<FeedState> {
       (feed) {
         // debugPrint("feed 0 ${feed[0].toJson()}");
         // debugPrint("feed 1 ${feed[1].toJson()}");
+        if (feed.isNotEmpty) {
+          debugPrint("feed 0 ${feed[0].toJson()}");
+          if (feed.length > 1) debugPrint("feed 1 ${feed[1].toJson()}");
+        }
         state = state.copyWith(
           feed: feed,
           isLoading: false,
@@ -323,7 +328,7 @@ class FeedNotifier extends StateNotifier<FeedState> {
     state = state.copyWith(
       searchQuery: query,
       feedType: FeedType.search,
-      feed: [],
+      clearFeed: true,
       isEnd: false,
       error: null,
     );
