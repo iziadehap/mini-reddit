@@ -1,4 +1,4 @@
-# Mini Reddit V2
+# Mini Reddit
 
 A fully-featured Reddit clone built with Flutter and Supabase, showcasing modern mobile app development practices with a clean architecture and beautiful UI.
 
@@ -82,7 +82,7 @@ The app follows Clean Architecture principles with clear separation of concerns:
 
    ```bash
    git clone <repository-url>
-   cd mini_reddit_v2
+   cd mini_reddit
    ```
 
 2. **Install dependencies**
